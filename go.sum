@@ -1,0 +1,6 @@
+github.com/Yallamaztar/PlutoRCON v0.0.0-20251109002143-e15a8516ee82 h1:oZTS/dZWmZVgCv+CwDmYdXUktx0X/fvbrOLR3l2BeeQ=
+github.com/Yallamaztar/PlutoRCON v0.0.0-20251109002143-e15a8516ee82/go.mod h1:WoH5nRQOtTNW8CmLWBTon8HL517EzBtzjO4Gy3hvwK0=
+github.com/Yallamaztar/events v0.0.0-20251110135228-96487462f859 h1:qUSFTG3kdw0n+zjLUwAFc7KuZfa1b/TizyznxOQw8q8=
+github.com/Yallamaztar/events v0.0.0-20251110135228-96487462f859/go.mod h1:b1eJqj7tC7XEgYI/ARBjp1136Jg1Z37AIGSgPkuFEuI=
+github.com/mattn/go-sqlite3 v1.14.32 h1:JD12Ag3oLy1zQA+BNn74xRgaBbdhbNIDYvQUEuuErjs=
+github.com/mattn/go-sqlite3 v1.14.32/go.mod h1:Uh1q+B4BYcTPb+yiD3kU8Ct7aC0hY9fxUwlHK0RXw+Y=
