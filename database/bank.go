@@ -142,34 +142,45 @@ func (b *Bank) TransferFromWallet(w *Wallet, amount int64) {
 		_ = tx.Rollback()
 		return
 	}
-
-	limit := math.MaxInt64 - amount
-	res, err = tx.Exec(
-		"UPDATE bank SET total = total + ? WHERE rowid = (SELECT rowid FROM bank ORDER BY rowid LIMIT 1) AND total <= ?",
-		amount, limit,
-	)
-	if err != nil {
-		_ = tx.Rollback()
-		return
-	}
-	if rows, _ := res.RowsAffected(); rows != 1 {
-		_ = tx.Rollback()
-		return
-	}
-
 	if err := tx.Commit(); err != nil {
 		_ = tx.Rollback()
 		return
 	}
 
-	b.mu.Lock()
 	w.mu.Lock()
-
-	b.balance += amount
 	w.balance -= amount
-
 	w.mu.Unlock()
-	b.mu.Unlock()
 
-	log.Printf("Transferred $%d from wallet %s to bank", amount, w.player)
+	credited := false
+	ctx2 := context.Background()
+	tx2, err := b.db.BeginTx(ctx2, nil)
+	if err == nil {
+		limit := math.MaxInt64 - amount
+		res, err = tx2.Exec(
+			"UPDATE bank SET total = total + ? WHERE rowid = (SELECT rowid FROM bank ORDER BY rowid LIMIT 1) AND total <= ?",
+			amount, limit,
+		)
+		if err == nil {
+			if rows, _ := res.RowsAffected(); rows == 1 {
+				if err := tx2.Commit(); err == nil {
+					credited = true
+				} else {
+					_ = tx2.Rollback()
+				}
+			} else {
+				_ = tx2.Rollback()
+			}
+		} else {
+			_ = tx2.Rollback()
+		}
+	}
+
+	if credited {
+		b.mu.Lock()
+		b.balance += amount
+		b.mu.Unlock()
+		log.Printf("Transferred $%d from wallet %s to bank", amount, w.player)
+	} else {
+		log.Printf("Debited $%d from wallet %s but skipped crediting bank (limit reached)", amount, w.player)
+	}
 }

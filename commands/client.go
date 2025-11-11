@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"math/rand"
 	"strconv"
 	"strings"
 
@@ -9,6 +10,30 @@ import (
 )
 
 func registerClientCommands(cr *commandRegister, bank *database.Bank) {
+	cr.registerCommand("richest", "rich", func(clientNum int, player, xuid string, args []string) {
+		wallets, err := database.Top5RichestWallets(cr.db)
+		if err != nil || len(wallets) == 0 {
+			cr.rcon.Tell(clientNum, "No wallets found")
+			return
+		}
+
+		for i, rw := range wallets {
+			cr.rcon.Say(fmt.Sprintf("[^5#%d^7] %s ^7- ^5$%d", i+1, rw.Player, rw.Balance))
+		}
+	})
+
+	cr.registerCommand("poorest", "poor", func(clientNum int, player, xuid string, args []string) {
+		wallets, err := database.Bottom5PoorestWallets(cr.db)
+		if err != nil || len(wallets) == 0 {
+			cr.rcon.Tell(clientNum, "No wallets found")
+			return
+		}
+
+		for i, rw := range wallets {
+			cr.rcon.Say(fmt.Sprintf("[^5#%d^7] %s ^7- ^5$%d", i+1, rw.Player, rw.Balance))
+		}
+	})
+
 	cr.registerCommand("pay", "pp", func(clientNum int, player, xuid string, args []string) {
 		if len(args) < 2 {
 			cr.rcon.Tell(clientNum, "Usage: ^5!pay ^7<player> <amount>")
@@ -88,59 +113,44 @@ func registerClientCommands(cr *commandRegister, bank *database.Bank) {
 		}
 
 		wlt := database.GetWallet(player, xuid, cr.db)
+		balance := wlt.Balance()
 
-		if strings.ToLower(args[0]) == "all" || strings.ToLower(args[0]) == "a" {
-			bet := wlt.Balance()
-			if bet <= 0 {
-				cr.rcon.Say(fmt.Sprintf("%s is ^F^1Gay n Poor", player))
-				return
-			}
+		if balance <= 0 {
+			cr.rcon.Say(fmt.Sprintf("%s is ^F^1Gay n Poor", player))
+			return
+		}
 
-			win := (len(player) % 2) == 0
-			if win {
-				bank.TransferToWallet(wlt, bet)
-				cr.rcon.Tell(clientNum, fmt.Sprintf("you ^5won! ^7$%d", bet))
-			} else {
-				bank.TransferFromWallet(wlt, bet)
-				cr.rcon.Tell(clientNum, fmt.Sprintf("you ^1lost! ^7$%d", bet))
-			}
+		// Determine bet amount
+		var bet int64
+		arg := strings.ToLower(args[0])
 
-		} else if strings.ToLower(args[0]) == "half" || strings.ToLower(args[0]) == "h" {
-			bet := wlt.Balance() / 2
-			if bet <= 0 {
-				cr.rcon.Say(fmt.Sprintf("%s is ^F^1Gay n Poor", player))
-				return
-			}
-
-			win := (len(player) % 2) == 0
-			if win {
-				bank.TransferToWallet(wlt, bet)
-				cr.rcon.Tell(clientNum, fmt.Sprintf("you ^5won! ^7$%d", bet))
-			} else {
-				bank.TransferFromWallet(wlt, bet)
-				cr.rcon.Tell(clientNum, fmt.Sprintf("you ^1lost! ^7$%d", bet))
-			}
-
-		} else {
-			bet, err := strconv.ParseInt(args[0], 10, 64)
-			if err != nil || bet <= 0 {
+		switch arg {
+		case "all", "a":
+			bet = balance
+		case "half", "h":
+			bet = balance / 2
+		default:
+			amt, err := strconv.ParseInt(arg, 10, 64)
+			if err != nil || amt <= 0 {
 				cr.rcon.Tell(clientNum, "Invalid amount")
 				return
 			}
+			bet = amt
+		}
 
-			if wlt.Balance() < bet {
-				cr.rcon.Tell(clientNum, "Insufficient wallet balance")
-				return
-			}
+		if bet > balance {
+			cr.rcon.Tell(clientNum, "Insufficient wallet balance")
+			return
+		}
 
-			win := (len(player) % 2) == 0
-			if win {
-				bank.TransferToWallet(wlt, bet)
-				cr.rcon.Tell(clientNum, fmt.Sprintf("you ^5won! ^7$%d", bet))
-			} else {
-				bank.TransferFromWallet(wlt, bet)
-				cr.rcon.Tell(clientNum, fmt.Sprintf("you ^1lost! ^7$%d", bet))
-			}
+		if rand.Float64() < 0.45 {
+			bank.TransferToWallet(wlt, bet)
+			cr.rcon.Tell(clientNum, fmt.Sprintf("You ^5won! ^7$%d", bet))
+			cr.rcon.Say(fmt.Sprintf("%s just ^5won ^7$%d in gambling!", player, bet))
+		} else {
+			bank.TransferFromWallet(wlt, bet)
+			cr.rcon.Tell(clientNum, fmt.Sprintf("You ^1lost! ^7$%d", bet))
+			cr.rcon.Say(fmt.Sprintf("%s just ^1lost ^7$%d in gambling!", player, bet))
 		}
 	})
 }

@@ -232,3 +232,59 @@ func GiveAllWallets(db *sql.DB, amount int64) (int, error) {
 
 	return int(rows), nil
 }
+
+type RichWallet struct {
+	Player  string
+	XUID    string
+	Balance int64
+}
+
+func TopRichestWallets(db *sql.DB, limit int) ([]RichWallet, error) {
+	if db == nil {
+		return nil, fmt.Errorf("db is nil")
+	}
+	if limit <= 0 {
+		limit = 5
+	}
+
+	rows, err := db.Query("SELECT player, xuid, balance FROM wallets ORDER BY balance DESC LIMIT ?", limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	list := make([]RichWallet, 0, limit)
+	for rows.Next() {
+		var rw RichWallet
+		if err := rows.Scan(&rw.Player, &rw.XUID, &rw.Balance); err != nil {
+			return nil, err
+		}
+		list = append(list, rw)
+	}
+	return list, nil
+}
+
+func Top5RichestWallets(db *sql.DB) ([]RichWallet, error) {
+	return TopRichestWallets(db, 5)
+}
+
+func Bottom5PoorestWallets(db *sql.DB) ([]RichWallet, error) {
+	if db == nil {
+		return nil, fmt.Errorf("db is nil")
+	}
+	rows, err := db.Query("SELECT player, xuid, balance FROM wallets ORDER BY balance ASC LIMIT 5")
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+	var list []RichWallet
+	for rows.Next() {
+		var rw RichWallet
+		if err := rows.Scan(&rw.Player, &rw.XUID, &rw.Balance); err != nil {
+			return nil, err
+		}
+		list = append(list, rw)
+	}
+	return list, nil
+}

@@ -61,8 +61,7 @@ func main() {
 	}
 
 	rc.SetDvar("brwns_enabled", "1")
-	rc.SetDvar("brwns_exec", "")
-
+	rc.SetDvar("brwns_exec", "hide budigp rgo")
 	defer rc.Close()
 
 	reg := commands.New(logger, rc, db)

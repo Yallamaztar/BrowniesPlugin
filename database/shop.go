@@ -81,7 +81,7 @@ func SeedShop(db *sql.DB) error {
 		{"freeze", "freeze %PLAYER%", "Freeze/unfreeze A Player", 600_000},
 		// {"setspeed", "setspeed %PLAYER% 1.5", "Set A Players Movement Speed", 700_500},
 		// {"teleport", "teleport %PLAYER% 100 100 100", "Teleport to preset coordinates", 9_000},
-		{"giveweapon", "giveweapon %PLAYER% ak47", "Receive a weapon (AK-47)", 12_000},
+		// {"giveweapon", "giveweapon %PLAYER% ak47", "Receive a weapon (AK-47)", 12_000},
 	}
 	for _, b := range baseline {
 		_ = addShopItem(db, b.name, b.price, b.cmd, b.desc)
