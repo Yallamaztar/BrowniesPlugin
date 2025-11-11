@@ -47,6 +47,12 @@ func main() {
 		logger.Fatalf("Failed to connect to RCON: %v", err)
 	}
 
+	arg := ""
+	_, err = rc.SendCommand("killplayer 0", &arg)
+	if err != nil {
+		logger.Fatalf("Failed to send killplayer command: %v", err)
+	}
+
 	defer rc.Close()
 
 	reg := commands.New(logger, rc, db)
