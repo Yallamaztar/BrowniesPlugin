@@ -78,7 +78,48 @@ func (cr *commandRegister) RegisterCommands(bank *database.Bank) {
 
 		bank.TransferToWallet(wlt, amount)
 		cr.rcon.Tell(clientNum, fmt.Sprintf("Gave ^5$%d ^7to %s", amount, t.Name))
+		if targetCN, ok := cr.GetClientNum(t.XUID); ok {
+			cr.rcon.Tell(targetCN, fmt.Sprintf("You received ^5$%d ^7from %s", amount, player))
+		}
 		cr.logger.Printf("%s gave $%d to %s from bank", player, amount, t.Name)
+	})
+
+	cr.registerClientCommand("pay", "pp", func(clientNum int, player, xuid string, args []string) {
+		if len(args) < 2 {
+			cr.rcon.Tell(clientNum, "Usage: ^5!pay ^7<player> <amount>")
+			return
+		}
+
+		wlt := database.GetWallet(player, xuid, cr.db)
+		t := cr.findPlayer(args[0])
+		if t == nil {
+			cr.rcon.Tell(clientNum, "Player not found")
+			return
+		}
+
+		if t.XUID == xuid {
+			cr.rcon.Tell(clientNum, "Cant pay yourself")
+			return
+		}
+
+		twlt := database.GetWallet(t.Name, t.XUID, cr.db)
+
+		amount, err := strconv.ParseInt(args[1], 10, 64)
+		if err != nil || amount <= 0 {
+			cr.rcon.Tell(clientNum, "Invalid amount")
+			return
+		}
+
+		err = database.TransferFromWalletToWallet(wlt, twlt, amount)
+		if err != nil {
+			cr.rcon.Tell(clientNum, fmt.Sprintf("Failed to pay %s", t.Name))
+			return
+		}
+
+		cr.rcon.Tell(clientNum, fmt.Sprintf("Paid ^5$%d ^7to %s", amount, t.Name))
+		if targetCN, ok := cr.GetClientNum(t.XUID); ok {
+			cr.rcon.Tell(targetCN, fmt.Sprintf("You received ^5$%d ^7from %s", amount, player))
+		}
 	})
 
 	cr.registerClientCommand("help", "?", func(clientNum int, player, xuid string, args []string) {
@@ -114,6 +155,7 @@ func (cr *commandRegister) RegisterCommands(bank *database.Bank) {
 	cr.registerClientCommand("gamble", "g", func(clientNum int, player, xuid string, args []string) {
 		if len(args) == 0 {
 			cr.rcon.Tell(clientNum, "Usage: !gamble <amount>")
+			return
 		}
 
 		wlt := database.GetWallet(player, xuid, cr.db)
@@ -127,10 +169,10 @@ func (cr *commandRegister) RegisterCommands(bank *database.Bank) {
 
 			win := (len(player) % 2) == 0
 			if win {
-				wlt.AddBalance(bet)
+				bank.TransferToWallet(wlt, bet)
 				cr.rcon.Tell(clientNum, fmt.Sprintf("you ^5won! ^7$%d", bet))
 			} else {
-				wlt.SubtractBalance(bet)
+				bank.TransferFromWallet(wlt, bet)
 				cr.rcon.Tell(clientNum, fmt.Sprintf("you ^1lost! ^7$%d", bet))
 			}
 
@@ -143,10 +185,10 @@ func (cr *commandRegister) RegisterCommands(bank *database.Bank) {
 
 			win := (len(player) % 2) == 0
 			if win {
-				wlt.AddBalance(bet)
+				bank.TransferToWallet(wlt, bet)
 				cr.rcon.Tell(clientNum, fmt.Sprintf("you ^5won! ^7$%d", bet))
 			} else {
-				wlt.SubtractBalance(bet)
+				bank.TransferFromWallet(wlt, bet)
 				cr.rcon.Tell(clientNum, fmt.Sprintf("you ^1lost! ^7$%d", bet))
 			}
 
@@ -164,10 +206,10 @@ func (cr *commandRegister) RegisterCommands(bank *database.Bank) {
 
 			win := (len(player) % 2) == 0
 			if win {
-				wlt.AddBalance(bet)
+				bank.TransferToWallet(wlt, bet)
 				cr.rcon.Tell(clientNum, fmt.Sprintf("you ^5won! ^7$%d", bet))
 			} else {
-				wlt.SubtractBalance(bet)
+				bank.TransferFromWallet(wlt, bet)
 				cr.rcon.Tell(clientNum, fmt.Sprintf("you ^1lost! ^7$%d", bet))
 			}
 		}

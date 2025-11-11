@@ -35,7 +35,7 @@ func main() {
 		logger.Fatalf("Failed to ensure owners table: %v", err)
 	}
 
-	database.AddOwner(db, "budiworld", "1F3466")
+	database.AddOwner(db, "budiworld", "2045030")
 
 	rc, err := rcon.New(
 		os.Getenv("RCON_IP"),

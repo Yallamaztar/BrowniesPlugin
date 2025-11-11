@@ -24,11 +24,18 @@ func HandleEvents(ctx context.Context, rc *rcon.RCONClient, logger *log.Logger, 
 	for e := range ch {
 		switch t := e.(type) {
 		case *events.KillEvent:
-			wlt := database.GetWallet(t.VictimName, t.VictimXUID, db)
-			bdb.TransferToWallet(wlt, 150)
+			reg.SetClientNum(t.AttackerXUID, t.AttackerClientNum)
+			reg.SetClientNum(t.VictimXUID, t.VictimClientNum)
+			awlt := database.GetWallet(t.VictimName, t.VictimXUID, db)
+			bdb.TransferToWallet(awlt, 150)
 			rc.Tell(t.VictimClientNum, fmt.Sprintf("Kill Reward: ^5$%d", 150))
 
+			vwlt := database.GetWallet(t.AttackerName, t.AttackerXUID, db)
+			bdb.TransferFromWallet(vwlt, 200)
+			rc.Tell(t.AttackerClientNum, fmt.Sprintf("Death Penalty: ^1$%d", 200))
+
 		case *events.PlayerEvent:
+			reg.SetClientNum(t.XUID, t.Flag)
 			if t.Command == "J" {
 				wlt := database.GetWallet(t.Player, t.XUID, db)
 				if wlt != nil {
