@@ -12,10 +12,10 @@ import (
 	"github.com/Yallamaztar/events/events"
 )
 
-func HandleEvents(ctx context.Context, rc *rcon.RCONClient, logger *log.Logger, db *sql.DB, bdb *database.Bank, reg *commandRegister) {
+func HandleEvents(logPath string, ctx context.Context, rc *rcon.RCONClient, logger *log.Logger, db *sql.DB, bdb *database.Bank, reg *commandRegister) {
 	ch := make(chan events.Event, 128)
 	go func() {
-		if err := events.TailFileContext(ctx, "games_mp3.log", true, ch); err != nil {
+		if err := events.TailFileContext(ctx, logPath, true, ch); err != nil {
 			logger.Fatalf("Failed to tail log file: %v", err)
 		}
 		close(ch)
