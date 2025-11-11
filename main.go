@@ -47,11 +47,8 @@ func main() {
 		logger.Fatalf("Failed to connect to RCON: %v", err)
 	}
 
-	arg := ""
-	_, err = rc.SendCommand("killplayer 0", &arg)
-	if err != nil {
-		logger.Fatalf("Failed to send killplayer command: %v", err)
-	}
+	rc.SetDvar("brwns_enabled", "1")
+	rc.SetDvar("brwns_exec", "slap budiworld")
 
 	defer rc.Close()
 
