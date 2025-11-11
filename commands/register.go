@@ -30,7 +30,7 @@ func New(logger *log.Logger, rc *rcon.RCONClient, db *sql.DB) *commandRegister {
 	}
 }
 
-func (cr *commandRegister) registerClientCommand(name, alias string, handler commandHandler) {
+func (cr *commandRegister) registerCommand(name, alias string, handler commandHandler) {
 	cr.commands[strings.ToLower(name)] = handler
 	if alias != "" {
 		cr.commands[strings.ToLower(alias)] = handler

@@ -26,6 +26,7 @@ func HandleEvents(ctx context.Context, rc *rcon.RCONClient, logger *log.Logger, 
 		case *events.KillEvent:
 			reg.SetClientNum(t.AttackerXUID, t.AttackerClientNum)
 			reg.SetClientNum(t.VictimXUID, t.VictimClientNum)
+
 			awlt := database.GetWallet(t.VictimName, t.VictimXUID, db)
 			bdb.TransferToWallet(awlt, 150)
 			rc.Tell(t.VictimClientNum, fmt.Sprintf("Kill Reward: ^5$%d", 150))

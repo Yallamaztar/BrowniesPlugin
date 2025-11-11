@@ -68,31 +68,6 @@ func (b *Bank) Withdraw(amount int64) {
 	log.Printf("Withdrew %d from bank (%d)", amount, b.balance)
 }
 
-func (b *Bank) Deposit(amount int64) {
-	if amount <= 0 {
-		return
-	}
-
-	b.mu.Lock()
-	defer b.mu.Unlock()
-
-	res, err := b.db.Exec(
-		"UPDATE bank SET total = total + ? WHERE rowid = (SELECT rowid FROM bank ORDER BY rowid LIMIT 1)",
-		amount,
-	)
-	if err != nil {
-		return
-	}
-
-	if rows, _ := res.RowsAffected(); rows != 1 {
-		return
-	}
-
-	b.balance += amount
-
-	log.Printf("Deposited %d to bank (%d)", amount, b.balance)
-}
-
 func (b *Bank) TransferToWallet(w *Wallet, amount int64) {
 	if amount <= 0 {
 		return
@@ -134,12 +109,14 @@ func (b *Bank) TransferToWallet(w *Wallet, amount int64) {
 
 	b.mu.Lock()
 	w.mu.Lock()
+
 	b.balance -= amount
 	w.balance += amount
+
 	w.mu.Unlock()
 	b.mu.Unlock()
 
-	log.Printf("Transferred $%d from bank to wallet %s)", amount, w.player)
+	log.Printf("Transferred $%d from bank to wallet %s", amount, w.player)
 }
 
 func (b *Bank) TransferFromWallet(w *Wallet, amount int64) {
@@ -154,8 +131,8 @@ func (b *Bank) TransferFromWallet(w *Wallet, amount int64) {
 	}
 
 	res, err := tx.Exec(
-		"UPDATE wallets SET balance = balance - ? WHERE xuid = ? AND balance >= ?",
-		amount, w.xuid, amount,
+		"UPDATE wallets SET balance = balance - ? WHERE xuid = ?",
+		amount, w.xuid,
 	)
 	if err != nil {
 		_ = tx.Rollback()
@@ -166,9 +143,10 @@ func (b *Bank) TransferFromWallet(w *Wallet, amount int64) {
 		return
 	}
 
+	limit := math.MaxInt64 - amount
 	res, err = tx.Exec(
-		"UPDATE bank SET total = total + ? WHERE rowid = (SELECT rowid FROM bank ORDER BY rowid LIMIT 1)",
-		amount,
+		"UPDATE bank SET total = total + ? WHERE rowid = (SELECT rowid FROM bank ORDER BY rowid LIMIT 1) AND total <= ?",
+		amount, limit,
 	)
 	if err != nil {
 		_ = tx.Rollback()
@@ -186,13 +164,6 @@ func (b *Bank) TransferFromWallet(w *Wallet, amount int64) {
 
 	b.mu.Lock()
 	w.mu.Lock()
-
-	if b.balance > math.MaxInt64-amount {
-		log.Printf("Transfer aborted: adding %d to bank would overflow int64", amount)
-		w.mu.Unlock()
-		b.mu.Unlock()
-		return
-	}
 
 	b.balance += amount
 	w.balance -= amount

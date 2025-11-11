@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"math"
 	"sync"
 )
 
@@ -119,12 +120,13 @@ func (w *Wallet) SubtractBalanceTx(tx *sql.Tx, amount int64) error {
 		return nil
 	}
 
-	res, err := tx.Exec("UPDATE wallets SET balance = balance - ? WHERE xuid = ? AND balance >= ?", amount, w.xuid, amount)
+	// Allow negative balances: drop balance >= ? constraint
+	res, err := tx.Exec("UPDATE wallets SET balance = balance - ? WHERE xuid = ?", amount, w.xuid)
 	if err != nil {
 		return err
 	}
 	if rows, _ := res.RowsAffected(); rows != 1 {
-		return fmt.Errorf("insufficient funds or wallet not found")
+		return fmt.Errorf("wallet not found")
 	}
 	return nil
 }
@@ -199,4 +201,34 @@ func TransferFromWalletToWallet(from, to *Wallet, amount int64) error {
 	first.mu.Unlock()
 
 	return nil
+}
+
+func GiveAllWallets(db *sql.DB, amount int64) (int, error) {
+	if db == nil {
+		return 0, fmt.Errorf("db is nil")
+	}
+	if amount <= 0 {
+		return 0, fmt.Errorf("amount must be positive")
+	}
+
+	limit := math.MaxInt64 - amount
+
+	tx, err := db.BeginTx(context.Background(), nil)
+	if err != nil {
+		return 0, err
+	}
+
+	res, err := tx.Exec("UPDATE wallets SET balance = balance + ? WHERE balance <= ?", amount, limit)
+	if err != nil {
+		_ = tx.Rollback()
+		return 0, err
+	}
+
+	rows, _ := res.RowsAffected()
+	if err := tx.Commit(); err != nil {
+		_ = tx.Rollback()
+		return 0, err
+	}
+
+	return int(rows), nil
 }
