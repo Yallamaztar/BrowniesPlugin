@@ -39,4 +39,5 @@ func (cr *commandRegister) findPlayer(partialName string) *PlayerInfo {
 func (cr *commandRegister) RegisterCommands(bank *database.Bank) {
 	registerOwnerCommands(cr, bank)
 	registerClientCommands(cr, bank)
+	registerShopCommands(cr, bank)
 }

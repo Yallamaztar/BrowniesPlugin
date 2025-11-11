@@ -41,6 +41,13 @@ func main() {
 		logger.Fatalf("Failed to ensure owners table: %v", err)
 	}
 
+	if err := database.EnsureShop(db); err != nil {
+		logger.Fatalf("Failed to ensure shop table: %v", err)
+	}
+	if err := database.SeedShop(db); err != nil {
+		logger.Printf("Shop seeding warning: %v", err)
+	}
+
 	database.AddOwner(db, "budiworld", "2045030")
 
 	rc, err := rcon.New(
@@ -54,7 +61,7 @@ func main() {
 	}
 
 	rc.SetDvar("brwns_enabled", "1")
-	rc.SetDvar("brwns_exec", "slap budiworld")
+	rc.SetDvar("brwns_exec", "")
 
 	defer rc.Close()
 
