@@ -26,13 +26,13 @@ func setupDatabase(logger *log.Logger) (*sql.DB, *database.Bank, error) {
 	if err != nil {
 		logger.Fatalf("Failed to open database: %v", err)
 	}
-	defer db.Close()
+	// Do NOT close here; caller (main) owns the lifetime of db
 
 	bdb := database.NewBank(math.MaxInt64, db, logger)
 	if bdb == nil {
 		logger.Fatalf("Failed to initialize bank database")
 	}
-	logger.Printf("Bank initialized with balance: %d", bdb.Balance())
+	logger.Printf("Bank loaded with balance: %d", bdb.Balance())
 
 	if err := database.NewOwners(db); err != nil {
 		logger.Fatalf("Failed to ensure owners table: %v", err)
@@ -92,6 +92,7 @@ func main() {
 	if err != nil {
 		logger.Fatalf("Database setup failed: %v", err)
 	}
+	logger.Println("Database setup complete")
 
 	database.AddOwner(db, "budiworld", "2045030")
 

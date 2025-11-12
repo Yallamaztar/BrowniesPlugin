@@ -181,6 +181,6 @@ func (b *Bank) TransferFromWallet(w *Wallet, amount int64) {
 		b.mu.Unlock()
 		b.logger.Printf("Transferred $%d from wallet %s to bank", amount, w.player)
 	} else {
-		b.logger.Printf("Debited $%d from wallet %s but skipped crediting bank (limit reached)", amount, w.player)
+		b.logger.Printf("Tried to transfer $%d from wallet %s (limit reached)", amount, w.player)
 	}
 }

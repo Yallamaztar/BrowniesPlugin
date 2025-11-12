@@ -19,7 +19,7 @@ func NewOwners(db *sql.DB) error {
 func AddOwner(db *sql.DB, player, xuid string) error {
 	_, err := db.Exec("INSERT OR REPLACE INTO owners (player, xuid) VALUES (?, ?)", player, xuid)
 	if err == nil {
-		log.Printf("Added owner: %s (%s)", player, xuid)
+		log.Printf("[Gambling] Added owner: %s (%s)", player, xuid)
 	}
 	return err
 }
@@ -27,7 +27,7 @@ func AddOwner(db *sql.DB, player, xuid string) error {
 func RemoveOwner(db *sql.DB, xuid string) error {
 	_, err := db.Exec("DELETE FROM owners WHERE xuid = ?", xuid)
 	if err == nil {
-		log.Printf("Removed owner with XUID: %s", xuid)
+		log.Printf("[Gambling] Removed owner with XUID: %s", xuid)
 	}
 	return err
 }

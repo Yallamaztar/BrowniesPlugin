@@ -3,7 +3,7 @@ registerAllCommands()
     // server command
     scripts\mp\_brownies_core::RegisterCommand("onstart", "onstart", ::onStart, 0);
 
-    // admin commands
+    // rcon commands
     scripts\mp\_brownies_core::RegisterCommand("killplayer",  "kpl",  ::killPlayer,    1);
     scripts\mp\_brownies_core::RegisterCommand("hide",        "hd",   ::hidePlayer,    1);
     scripts\mp\_brownies_core::RegisterCommand("spectator",   "spec", ::setSpectator,  1);
