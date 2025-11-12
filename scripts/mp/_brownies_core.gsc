@@ -3,7 +3,7 @@ setDvarIfUnitialized( d, v ) {
         setDvar( d, v );
 }
 
-registerCommand(name, alias, handler, minArgs)
+RegisterCommand(name, alias, handler, minArgs)
 {
     if ( !isDefined(level.brwns_cmds) )
         level.brwns_cmds = [];
@@ -67,13 +67,13 @@ commandListenerLoop() {
             continue;
         }
 
-        cmd = getDvar( "brwns_exec" );
+        cmd = getDvar( "brwns_exec_in" );
         if ( cmd != "" ) {
-            setDvar( "brwns_exec", "" );
+            setDvar( "brwns_exec_in", "" );
             thread dispatchCommand(cmd);
         }
 
-        wait 1;
+        wait 0.25;
     }
 }
 

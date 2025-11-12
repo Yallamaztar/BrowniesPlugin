@@ -11,10 +11,11 @@ import (
 type Bank struct {
 	balance int64
 	db      *sql.DB
+	logger  *log.Logger
 	mu      sync.RWMutex
 }
 
-func NewBank(balance int64, db *sql.DB) *Bank {
+func NewBank(balance int64, db *sql.DB, logger *log.Logger) *Bank {
 	schema := `CREATE TABLE IF NOT EXISTS bank (
 		total INTEGER NOT NULL
     );`
@@ -28,7 +29,7 @@ func NewBank(balance int64, db *sql.DB) *Bank {
 		return nil
 	}
 
-	return &Bank{balance: balance, db: db}
+	return &Bank{balance: balance, db: db, logger: logger}
 }
 
 func (b *Bank) Balance() int64 {
@@ -64,8 +65,7 @@ func (b *Bank) Withdraw(amount int64) {
 	}
 
 	b.balance -= amount
-
-	log.Printf("Withdrew %d from bank (%d)", amount, b.balance)
+	b.logger.Printf("Withdrew %d from bank (%d)", amount, b.balance)
 }
 
 func (b *Bank) TransferToWallet(w *Wallet, amount int64) {
@@ -116,7 +116,7 @@ func (b *Bank) TransferToWallet(w *Wallet, amount int64) {
 	w.mu.Unlock()
 	b.mu.Unlock()
 
-	log.Printf("Transferred $%d from bank to wallet %s", amount, w.player)
+	b.logger.Printf("Transferred $%d from bank to wallet %s", amount, w.player)
 }
 
 func (b *Bank) TransferFromWallet(w *Wallet, amount int64) {
@@ -179,8 +179,8 @@ func (b *Bank) TransferFromWallet(w *Wallet, amount int64) {
 		b.mu.Lock()
 		b.balance += amount
 		b.mu.Unlock()
-		log.Printf("Transferred $%d from wallet %s to bank", amount, w.player)
+		b.logger.Printf("Transferred $%d from wallet %s to bank", amount, w.player)
 	} else {
-		log.Printf("Debited $%d from wallet %s but skipped crediting bank (limit reached)", amount, w.player)
+		b.logger.Printf("Debited $%d from wallet %s but skipped crediting bank (limit reached)", amount, w.player)
 	}
 }

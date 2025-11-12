@@ -8,10 +8,6 @@ import (
 )
 
 func Open(path string) (*sql.DB, error) {
-	if path == "" {
-		path = "brownies.db"
-	}
-
 	db, err := sql.Open("sqlite3", path+"?_busy_timeout=5000&_journal_mode=WAL")
 	if err != nil {
 		return nil, err

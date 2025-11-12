@@ -7,7 +7,7 @@ import (
 	"github.com/Yallamaztar/BrowniesGambling/database"
 )
 
-func registerShopCommands(cr *commandRegister, bank *database.Bank) {
+func RegisterShopCommands(cr *commandRegister, bank *database.Bank) {
 	aliases := map[string]string{
 		"kpl":  "killplayer",
 		"hd":   "hide",
@@ -21,7 +21,7 @@ func registerShopCommands(cr *commandRegister, bank *database.Bank) {
 		"sl":   "slap",
 	}
 
-	cr.registerCommand("shop", "sh", func(clientNum int, player, xuid string, args []string) {
+	cr.RegisterCommand("shop", "sh", func(clientNum int, player, xuid string, args []string) {
 		items, err := database.ListShopItems(cr.db)
 		if err != nil || len(items) == 0 {
 			cr.rcon.Tell(clientNum, "Shop empty")
@@ -34,7 +34,7 @@ func registerShopCommands(cr *commandRegister, bank *database.Bank) {
 		cr.rcon.Tell(clientNum, "^7Buy with ^5!buy <item|alias> ^7[player (optional)]")
 	})
 
-	cr.registerCommand("buy", "b", func(clientNum int, player, xuid string, args []string) {
+	cr.RegisterCommand("buy", "b", func(clientNum int, player, xuid string, args []string) {
 		if len(args) < 1 {
 			cr.rcon.Tell(clientNum, "Usage: ^5!buy ^7<item> <player (optional)>")
 			return

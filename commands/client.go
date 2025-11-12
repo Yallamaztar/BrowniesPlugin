@@ -2,15 +2,15 @@ package commands
 
 import (
 	"fmt"
-	"math/rand"
+	"math/rand/v2"
 	"strconv"
 	"strings"
 
 	"github.com/Yallamaztar/BrowniesGambling/database"
 )
 
-func registerClientCommands(cr *commandRegister, bank *database.Bank) {
-	cr.registerCommand("richest", "rich", func(clientNum int, player, xuid string, args []string) {
+func RegisterClientCommands(cr *commandRegister, bank *database.Bank) {
+	cr.RegisterCommand("richest", "rich", func(clientNum int, player, xuid string, args []string) {
 		wallets, err := database.Top5RichestWallets(cr.db)
 		if err != nil || len(wallets) == 0 {
 			cr.rcon.Tell(clientNum, "No wallets found")
@@ -22,7 +22,7 @@ func registerClientCommands(cr *commandRegister, bank *database.Bank) {
 		}
 	})
 
-	cr.registerCommand("poorest", "poor", func(clientNum int, player, xuid string, args []string) {
+	cr.RegisterCommand("poorest", "poor", func(clientNum int, player, xuid string, args []string) {
 		wallets, err := database.Bottom5PoorestWallets(cr.db)
 		if err != nil || len(wallets) == 0 {
 			cr.rcon.Tell(clientNum, "No wallets found")
@@ -34,7 +34,7 @@ func registerClientCommands(cr *commandRegister, bank *database.Bank) {
 		}
 	})
 
-	cr.registerCommand("pay", "pp", func(clientNum int, player, xuid string, args []string) {
+	cr.RegisterCommand("pay", "pp", func(clientNum int, player, xuid string, args []string) {
 		if len(args) < 2 {
 			cr.rcon.Tell(clientNum, "Usage: ^5!pay ^7<player> <amount>")
 			return
@@ -72,7 +72,7 @@ func registerClientCommands(cr *commandRegister, bank *database.Bank) {
 		}
 	})
 
-	cr.registerCommand("help", "?", func(clientNum int, player, xuid string, args []string) {
+	cr.RegisterCommand("help", "?", func(clientNum int, player, xuid string, args []string) {
 		cr.rcon.Tell(clientNum, "^3Available commands:")
 		cr.rcon.Tell(clientNum, "^5!balance ^7[player] (!bal) - Check wallet balance")
 		cr.rcon.Tell(clientNum, "^5Usage: !balance, !balance PlayerName, !balance 5, !balance @xuid")
@@ -80,11 +80,11 @@ func registerClientCommands(cr *commandRegister, bank *database.Bank) {
 		cr.rcon.Tell(clientNum, "^5!help ^7(!?) - Show this help")
 	})
 
-	cr.registerCommand("bankbalance", "bankbal", func(clientNum int, player, xuid string, args []string) {
+	cr.RegisterCommand("bankbalance", "bankbal", func(clientNum int, player, xuid string, args []string) {
 		cr.rcon.Tell(clientNum, fmt.Sprintf("Bank ^5balance: ^7$%d", bank.Balance()))
 	})
 
-	cr.registerCommand("balance", "bal", func(clientNum int, player, xuid string, args []string) {
+	cr.RegisterCommand("balance", "bal", func(clientNum int, player, xuid string, args []string) {
 		if len(args) == 0 {
 			wlt := database.GetWallet(player, xuid, cr.db)
 			if wlt != nil {
@@ -106,7 +106,7 @@ func registerClientCommands(cr *commandRegister, bank *database.Bank) {
 		}
 	})
 
-	cr.registerCommand("gamble", "g", func(clientNum int, player, xuid string, args []string) {
+	cr.RegisterCommand("gamble", "g", func(clientNum int, player, xuid string, args []string) {
 		if len(args) == 0 {
 			cr.rcon.Tell(clientNum, "Usage: !gamble <amount>")
 			return
@@ -120,7 +120,6 @@ func registerClientCommands(cr *commandRegister, bank *database.Bank) {
 			return
 		}
 
-		// Determine bet amount
 		var bet int64
 		arg := strings.ToLower(args[0])
 

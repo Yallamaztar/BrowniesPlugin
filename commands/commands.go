@@ -1,43 +1,44 @@
 package commands
 
 import (
-	"fmt"
+	"database/sql"
 
 	"github.com/Yallamaztar/BrowniesGambling/database"
+	"github.com/Yallamaztar/BrowniesGambling/rcon"
 )
 
-type PlayerInfo struct {
+type playerInfo struct {
 	Name      string
 	XUID      string
 	clientNum int
 }
 
-func (cr *commandRegister) findPlayer(partialName string) *PlayerInfo {
+func (cr *commandRegister) findPlayer(partialName string) *playerInfo {
 	var playerName, xuid string
 	query := "SELECT player, xuid FROM wallets WHERE player LIKE ? ORDER BY created_at DESC LIMIT 1"
 	err := cr.db.QueryRow(query, "%"+partialName+"%").Scan(&playerName, &xuid)
 	if err != nil {
-		fmt.Println("Error finding player by name:", err)
 		return nil
 	}
 
 	if cn, ok := cr.GetClientNum(xuid); ok {
-		return &PlayerInfo{
+		return &playerInfo{
 			Name:      playerName,
 			XUID:      xuid,
 			clientNum: cn,
 		}
 	}
 
-	return &PlayerInfo{
+	return &playerInfo{
 		Name:      playerName,
 		XUID:      xuid,
 		clientNum: -1,
 	}
 }
 
-func (cr *commandRegister) RegisterCommands(bank *database.Bank) {
-	registerOwnerCommands(cr, bank)
-	registerClientCommands(cr, bank)
-	registerShopCommands(cr, bank)
+func (cr *commandRegister) RegisterCommands(db *sql.DB, bank *database.Bank, rc *rcon.RCONClient) {
+	RegisterOwnerCommands(cr)
+	RegisterAdminCommands(cr, bank)
+	RegisterClientCommands(cr, bank)
+	RegisterShopCommands(cr, bank)
 }

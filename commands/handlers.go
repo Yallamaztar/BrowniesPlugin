@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/Yallamaztar/BrowniesGambling/database"
-	"github.com/Yallamaztar/PlutoRCON/rcon"
+	"github.com/Yallamaztar/BrowniesGambling/rcon"
 	"github.com/Yallamaztar/events/events"
 )
 

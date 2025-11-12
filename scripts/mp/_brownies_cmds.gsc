@@ -1,15 +1,26 @@
 registerAllCommands()
 {
-    scripts\mp\_brownies_core::registerCommand("killplayer",  "kpl",  ::killPlayer,    1);
-    scripts\mp\_brownies_core::registerCommand("hide",        "hd",   ::hidePlayer,    1);
-    scripts\mp\_brownies_core::registerCommand("teleport",    "tp",   ::teleport,      2);
-    scripts\mp\_brownies_core::registerCommand("spectator",   "spec", ::setSpectator,  1);
-    scripts\mp\_brownies_core::registerCommand("sayto",       "st",   ::sayTo,         2);
-    scripts\mp\_brownies_core::registerCommand("giveweapon",  "gw",   ::giveWeapon,    2);
-    scripts\mp\_brownies_core::registerCommand("takeweapons", "tw",   ::takeWeapons,   1);
-    scripts\mp\_brownies_core::registerCommand("freeze",      "frz",  ::freezePlayer,  1);
-    scripts\mp\_brownies_core::registerCommand("setspeed",    "ss",   ::setSpeed,      2);
-    scripts\mp\_brownies_core::registerCommand("slap",        "sl",   ::slapPlayer,    1);
+    // server command
+    scripts\mp\_brownies_core::RegisterCommand("onstart", "onstart", ::onStart, 0);
+
+    // admin commands
+    scripts\mp\_brownies_core::RegisterCommand("killplayer",  "kpl",  ::killPlayer,    1);
+    scripts\mp\_brownies_core::RegisterCommand("hide",        "hd",   ::hidePlayer,    1);
+    scripts\mp\_brownies_core::RegisterCommand("spectator",   "spec", ::setSpectator,  1);
+    scripts\mp\_brownies_core::RegisterCommand("sayto",       "st",   ::sayTo,         2);
+    scripts\mp\_brownies_core::RegisterCommand("takeweapons", "tw",   ::takeWeapons,   1);
+    scripts\mp\_brownies_core::RegisterCommand("freeze",      "frz",  ::freezePlayer,  1);
+    scripts\mp\_brownies_core::RegisterCommand("slap",        "sl",   ::slapPlayer,    1);
+    scripts\mp\_brownies_core::RegisterCommand("loadout",     "ld",   ::loadout,       2);
+    // scripts\mp\_brownies_core::RegisterCommand("teleport",    "tp",   ::teleport,      2);
+    // scripts\mp\_brownies_core::RegisterCommand("setspeed",    "ss",   ::setSpeed,      2);
+    // scripts\mp\_brownies_core::RegisterCommand("giveweapon",  "gw",   ::giveWeapon,    2);
+}
+
+onStart(args) {
+    SetDvar("brwns_exec_out", "success");
+    wait 0.5;
+    SetDvar("brwns_exec_out", "");
 }
 
 killPlayer(args) {
@@ -138,4 +149,27 @@ slapPlayer(args) {
 
     dir = (randomInt(300) - 100, randomInt(500) - 100, 200);
     p SetVelocity(dir);
+}
+
+loadout(args) {
+    if (args.size < 2) return;
+    p = scripts\mp\_brownies_core::findPlayerByName(args[0]);
+    if (!isDefined(p) || !IsAlive(p)) return;
+
+    if (args[1] == "ballista" || args[1] == "bal") {
+        p TakeAllWeapons();
+        wait 0.1;
+        p GiveWeapon("ballista_mp", 0, randomIntRange(1, 45));
+        p SwitchToWeapon("ballista_mp");
+    } else if (args[1] == "dsr50" || args[1] == "dsr") {
+        p TakeAllWeapons();
+        wait 0.1;
+        p GiveWeapon("dsr50_mp", 0, randomIntRange(1, 45));
+        p SwitchToWeapon("dsr50_mp");
+    } else {
+        p TakeAllWeapons();
+        wait 0.1;
+        p GiveWeapon("dsr50_mp", 0, randomIntRange(1, 45));
+        p SwitchToWeapon("dsr50_mp");
+    }
 }

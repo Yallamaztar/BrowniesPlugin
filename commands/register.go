@@ -6,7 +6,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/Yallamaztar/PlutoRCON/rcon"
+	"github.com/Yallamaztar/BrowniesGambling/rcon"
 )
 
 type commandHandler func(clientNum int, player, xuid string, args []string)
@@ -30,7 +30,7 @@ func New(logger *log.Logger, rc *rcon.RCONClient, db *sql.DB) *commandRegister {
 	}
 }
 
-func (cr *commandRegister) registerCommand(name, alias string, handler commandHandler) {
+func (cr *commandRegister) RegisterCommand(name, alias string, handler commandHandler) {
 	cr.commands[strings.ToLower(name)] = handler
 	if alias != "" {
 		cr.commands[strings.ToLower(alias)] = handler
