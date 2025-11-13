@@ -1,12 +1,13 @@
 setDvarIfUnitialized( d, v ) {
-    if ( !isDefined(getDvar( d )) || getDvar( d ) == "" )
+    if (!isDefined(getDvar( d )) || getDvar( d ) == "") {
         setDvar( d, v );
+    }
 }
 
-RegisterCommand(name, alias, handler, minArgs)
-{
-    if ( !isDefined(level.brwns_cmds) )
+RegisterCommand(name, alias, handler, minArgs) {
+    if (!isDefined(level.brwns_cmds)) {
         level.brwns_cmds = [];
+    }
 
     entry = spawnstruct();
     entry.name = toLower(name);
@@ -16,17 +17,17 @@ RegisterCommand(name, alias, handler, minArgs)
     level.brwns_cmds[level.brwns_cmds.size] = entry;
 }
 
-findRegisteredCommand(name)
-{
-    if ( !isDefined(level.brwns_cmds) )
+findRegisteredCommand(name) {
+    if (!isDefined(level.brwns_cmds)) {
         return undefined;
+    }
 
     n = toLower(name);
-    for ( i = 0; i < level.brwns_cmds.size; i++ )
-    {
+    for ( i = 0; i < level.brwns_cmds.size; i++ ) {
         e = level.brwns_cmds[i];
-        if ( isDefined(e) && (e.name == n || (isDefined(e.alias) && e.alias == n)) )
+        if (isDefined(e) && (e.name == n || (isDefined(e.alias) && e.alias == n))) {
             return e;
+        }
     }
     return undefined;
 }
@@ -62,14 +63,14 @@ dispatchCommand(cmd) {
 commandListenerLoop() {
     level endon("game_ended");
     for (;;) {
-        if ( getDvarInt( "brwns_enabled" ) != 1 ) {
+        if ( getDvarInt( level.browniesPrefix + "enabled" ) != 1 ) {
             wait 1;
             continue;
         }
 
-        cmd = getDvar( "brwns_exec_in" );
+        cmd = getDvar( level.browniesPrefix + "exec_in" );
         if ( cmd != "" ) {
-            setDvar( "brwns_exec_in", "" );
+            setDvar( level.browniesPrefix + "exec_in", "" );
             thread dispatchCommand(cmd);
         }
 

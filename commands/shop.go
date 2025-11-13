@@ -27,14 +27,14 @@ func RegisterShopCommands(cr *commandRegister, bank *database.Bank) {
 			cr.rcon.Tell(clientNum, "Shop empty")
 			return
 		}
-		cr.rcon.Tell(clientNum, "-- ^5Shop Items ^7--")
+		cr.rcon.Tell(clientNum, "== ^5Shop Items ^7==")
 		for _, it := range items {
 			cr.rcon.Tell(clientNum, fmt.Sprintf("[^5$%d^7] ^5%s - ^7%s", it.Price, it.Name, it.Description))
 		}
-		cr.rcon.Tell(clientNum, "^7Buy with ^5!buy <item|alias> ^7[player (optional)]")
+		cr.rcon.Tell(clientNum, "^7Buy with ^5!buy <item|alias> ^7<player (optional)>")
 	})
 
-	cr.RegisterCommand("buy", "b", func(clientNum int, player, xuid string, args []string) {
+	cr.RegisterCommand("buy", "bu", func(clientNum int, player, xuid string, args []string) {
 		if len(args) < 1 {
 			cr.rcon.Tell(clientNum, "Usage: ^5!buy ^7<item> <player (optional)>")
 			return

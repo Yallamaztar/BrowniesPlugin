@@ -18,9 +18,9 @@ registerAllCommands()
 }
 
 onStart(args) {
-    SetDvar("brwns_exec_out", "success");
-    wait 0.5;
-    SetDvar("brwns_exec_out", "");
+    SetDvar(level.browniesPrefix + "exec_out", "success");
+    wait 0.75;
+    SetDvar(level.browniesPrefix + "exec_out", "");
 }
 
 killPlayer(args) {

@@ -10,6 +10,10 @@ import (
 )
 
 func RegisterClientCommands(cr *commandRegister, bank *database.Bank) {
+	cr.RegisterCommand("discord", "dc", func(clientNum int, player, xuid string, args []string) {
+		cr.rcon.Tell(clientNum, "Join our Discord: ^5dsc.gg/browner")
+	})
+
 	cr.RegisterCommand("richest", "rich", func(clientNum int, player, xuid string, args []string) {
 		wallets, err := database.Top5RichestWallets(cr.db)
 		if err != nil || len(wallets) == 0 {
@@ -73,11 +77,33 @@ func RegisterClientCommands(cr *commandRegister, bank *database.Bank) {
 	})
 
 	cr.RegisterCommand("help", "?", func(clientNum int, player, xuid string, args []string) {
-		cr.rcon.Tell(clientNum, "^3Available commands:")
-		cr.rcon.Tell(clientNum, "^5!balance ^7[player] (!bal) - Check wallet balance")
-		cr.rcon.Tell(clientNum, "^5Usage: !balance, !balance PlayerName, !balance 5, !balance @xuid")
-		cr.rcon.Tell(clientNum, "^5!gamble ^7<amount> (!g) - Place a bet")
-		cr.rcon.Tell(clientNum, "^5!help ^7(!?) - Show this help")
+		page := ""
+		if len(args) > 0 {
+			page = args[0]
+		}
+
+		switch page {
+		case "2":
+			cr.rcon.Tell(clientNum, "Available commands:")
+			cr.rcon.Tell(clientNum, "^5!balance ^7[player] (^5!bal^7) - Check wallet balance")
+			cr.rcon.Tell(clientNum, "^5!pay ^7<player> <amount> (^5!pp^7) - Pay another player")
+			cr.rcon.Tell(clientNum, "^5!bankbalance (^5!bankbal) - Check bank balance")
+			cr.rcon.Tell(clientNum, "^5!help 3 ^7- More commands")
+
+		case "3":
+			cr.rcon.Tell(clientNum, "Available commands:")
+			cr.rcon.Tell(clientNum, "^5!richest (^5!rich^7) - Show top 5 richest players")
+			cr.rcon.Tell(clientNum, "^5!poorest (^5!poor^7) - Show bottom 5 poorest players")
+			cr.rcon.Tell(clientNum, "^5!discord (^5!dc^7) - Get Discord invite link")
+
+		default:
+			cr.rcon.Tell(clientNum, "Available commands:")
+			cr.rcon.Tell(clientNum, "^5!gamble ^7<amount> (^5!g^7) - Place a bet")
+			cr.rcon.Tell(clientNum, "^5!shop (^5!sh^7) - View shop items")
+			cr.rcon.Tell(clientNum, "^5!buy ^7<item|alias> <player (optional)> (^5!bu^7) - Buy an item from the shop")
+			cr.rcon.Tell(clientNum, "^5!help 2 ^7- More commands")
+		}
+
 	})
 
 	cr.RegisterCommand("bankbalance", "bankbal", func(clientNum int, player, xuid string, args []string) {

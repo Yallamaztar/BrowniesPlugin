@@ -17,8 +17,8 @@ import (
 )
 
 var (
-	dbPath  = "brownies.db"
-	logPath = filepath.Join(os.Getenv("LOCALAPPDATA"), "Plutonium2", "storage", "t6", "main", "logs", "games_mp3.log")
+	dbPath = "brownies.db"
+	path   = filepath.Join(os.Getenv("LOCALAPPDATA"), "Plutonium2", "storage", "t6", "main", "logs", "games_mp3.log")
 )
 
 func setupDatabase(logger *log.Logger) (*sql.DB, *database.Bank, error) {
@@ -26,7 +26,6 @@ func setupDatabase(logger *log.Logger) (*sql.DB, *database.Bank, error) {
 	if err != nil {
 		logger.Fatalf("Failed to open database: %v", err)
 	}
-	// Do NOT close here; caller (main) owns the lifetime of db
 
 	bdb := database.NewBank(math.MaxInt64, db, logger)
 	if bdb == nil {
@@ -95,6 +94,10 @@ func main() {
 	logger.Println("Database setup complete")
 
 	database.AddOwner(db, "budiworld", "2045030")
+	database.AddAdmin(db, "[XRP]OGRuntz", "4941187")
+	database.AddAdmin(db, "[kitty]xAkame", "5968446")
+	database.AddAdmin(db, "B R I K", "4002521")
+	database.AddAdmin(db, "Larry Funk", "2538213")
 
 	rc, err := setupRCON(
 		os.Getenv("RCON_IP"),
@@ -110,7 +113,7 @@ func main() {
 	reg := commands.New(logger, rc, db)
 	reg.RegisterCommands(db, bdb, rc)
 
-	go commands.HandleEvents(logPath, ctx, rc, logger, db, bdb, reg)
+	go commands.HandleEvents(path, ctx, rc, logger, db, bdb, reg)
 
 	<-ctx.Done()
 	rc.Close()

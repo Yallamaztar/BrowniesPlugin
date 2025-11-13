@@ -193,6 +193,15 @@ func (rc *RCONClient) Say(message string) error {
 	return err
 }
 
+// Say a message to all players
+func (rc *RCONClient) SayRaw(message string) error {
+	if message == "" {
+		return fmt.Errorf("message cannot be empty")
+	}
+	_, err := rc.SendCommand("say", &message)
+	return err
+}
+
 // Tell a player a message
 func (rc *RCONClient) Tell(clientNum int, message string) error {
 	if message == "" {

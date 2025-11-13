@@ -94,7 +94,7 @@ func RegisterAdminCommands(cr *commandRegister, bank *database.Bank) {
 		}
 
 		formatted := fmt.Sprintf("%s%s %s: ^7%s", prefix, target.Name, channel, message)
-		cr.rcon.Say(formatted)
+		cr.rcon.SayRaw(formatted)
 	})
 
 	cr.RegisterCommand("loadout", "loadout", func(clientNum int, player, xuid string, args []string) {
