@@ -1,6 +1,10 @@
 package database
 
-import "database/sql"
+import (
+	"database/sql"
+
+	"github.com/Yallamaztar/BrowniesGambling/helpers"
+)
 
 func EnsureSettings(db *sql.DB) error {
 	schema := `CREATE TABLE IF NOT EXISTS settings (
@@ -19,6 +23,8 @@ func SetMaxBet(db *sql.DB, amount int64) error {
 		"INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",
 		"max_bet", amount,
 	)
+
+	helpers.GamblingMaxBetWebhook(amount)
 	return err
 }
 
@@ -47,6 +53,8 @@ func EnableGambling(db *sql.DB, enable bool) error {
 		"INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",
 		"gambling_enabled", val,
 	)
+
+	helpers.GamblingEnabledWebhook(enable)
 	return err
 }
 func IsGamblingEnabled(db *sql.DB) bool {

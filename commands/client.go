@@ -40,6 +40,11 @@ func RegisterClientCommands(cr *commandRegister, bank *database.Bank) {
 	})
 
 	cr.RegisterCommand("pay", "pp", func(clientNum int, player, xuid string, args []string) {
+		if !database.IsGamblingEnabled(cr.db) {
+			cr.rcon.Tell(clientNum, "Gambling is currently ^1disabled")
+			return
+		}
+
 		if len(args) < 2 {
 			cr.rcon.Tell(clientNum, "Usage: ^5!pay ^7<player> <amount>")
 			return
@@ -182,10 +187,12 @@ func RegisterClientCommands(cr *commandRegister, bank *database.Bank) {
 			bank.TransferToWallet(wlt, bet)
 			cr.rcon.Tell(clientNum, fmt.Sprintf("You ^5won! ^7$%s", helpers.FormatMoney(bet)))
 			cr.rcon.Say(fmt.Sprintf("%s just ^5won ^7$%s in gambling!", player, helpers.FormatMoney(bet)))
+			helpers.WinWebhook(player, bet)
 		} else {
 			bank.TransferFromWallet(wlt, bet)
 			cr.rcon.Tell(clientNum, fmt.Sprintf("You ^1lost! ^7$%s", helpers.FormatMoney(bet)))
 			cr.rcon.Say(fmt.Sprintf("%s just ^1lost ^7$%s in gambling!", player, helpers.FormatMoney(bet)))
+			helpers.LossWebhook(player, bet)
 		}
 	})
 }

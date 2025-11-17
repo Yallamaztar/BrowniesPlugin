@@ -59,6 +59,8 @@ func setupDatabase(logger *log.Logger) (*sql.DB, *database.Bank, error) {
 		logger.Fatalf("Failed to ensure settings table: %v", err)
 	}
 
+	database.EnableGambling(db, true)
+
 	return db, bdb, nil
 }
 

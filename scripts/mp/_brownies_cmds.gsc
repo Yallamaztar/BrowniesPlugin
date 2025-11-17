@@ -144,12 +144,12 @@ impl_loadout(args) {
     p = scripts\mp\_brownies_core::findPlayerByName(args[0]);
     if (!isDefined(p) || !IsAlive(p)) return;
 
-    if (args[1] == "ballista" || args[1] == "bal") {
+    if (args[1] == "ballista" || args[1] == "bal" || args[1] == "1") {
         p TakeAllWeapons();
         wait 0.1;
         p GiveWeapon("ballista_mp", 0, randomIntRange(1, 45));
         p SwitchToWeapon("ballista_mp");
-    } else if (args[1] == "dsr50" || args[1] == "dsr") {
+    } else if (args[1] == "dsr50" || args[1] == "dsr" || args[1] == "2") {
         p TakeAllWeapons();
         wait 0.1;
         p GiveWeapon("dsr50_mp", 0, randomIntRange(1, 45));

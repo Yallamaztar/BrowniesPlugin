@@ -30,6 +30,7 @@ func RegisterAdminCommands(cr *commandRegister, bank *database.Bank) {
 		}
 
 		cr.rcon.SetDvar("brwns_exec_in", fmt.Sprintf("setgravity %s %f", player, gravity))
+		cr.rcon.Tell(clientNum, fmt.Sprintf("Gravity set to %f successfully", gravity))
 	})
 
 	cr.RegisterCommand("setspeed", "ss", func(clientNum int, player, xuid string, args []string) {
@@ -52,6 +53,7 @@ func RegisterAdminCommands(cr *commandRegister, bank *database.Bank) {
 		}
 
 		cr.rcon.SetDvar("brwns_exec_in", fmt.Sprintf("setspeed %s %f", player, speed))
+		cr.rcon.Tell(clientNum, fmt.Sprintf("Speed set to %f successfully", speed))
 	})
 
 	cr.RegisterCommand("killplayer", "kpl", func(clientNum int, player, xuid string, args []string) {
@@ -81,6 +83,7 @@ func RegisterAdminCommands(cr *commandRegister, bank *database.Bank) {
 		}
 
 		cr.rcon.SetDvar("brwns_exec_in", fmt.Sprintf("killplayer %s %s", t, l))
+		cr.rcon.Tell(clientNum, fmt.Sprintf("Killed player %s successfully", t))
 	})
 
 	cr.RegisterCommand("hide", "hd", func(clientNum int, player, xuid string, args []string) {
@@ -110,6 +113,11 @@ func RegisterAdminCommands(cr *commandRegister, bank *database.Bank) {
 		}
 
 		cr.rcon.SetDvar("brwns_exec_in", fmt.Sprintf("hide %s %s", t, l))
+		if t == l {
+			cr.rcon.Tell(clientNum, "Hide enabled")
+		} else {
+			cr.rcon.Tell(clientNum, fmt.Sprintf("Hid player %s successfully", t))
+		}
 	})
 
 	cr.RegisterCommand("spectator", "spec", func(clientNum int, player, xuid string, args []string) {
@@ -139,6 +147,7 @@ func RegisterAdminCommands(cr *commandRegister, bank *database.Bank) {
 		}
 
 		cr.rcon.SetDvar("brwns_exec_in", fmt.Sprintf("spectator %s %s", t, l))
+		cr.rcon.Tell(clientNum, fmt.Sprintf("Set spectator mode for player %s successfully", t))
 	})
 
 	cr.RegisterCommand("teleport", "tp", func(clientNum int, player, xuid string, args []string) {
@@ -168,6 +177,7 @@ func RegisterAdminCommands(cr *commandRegister, bank *database.Bank) {
 		}
 
 		cr.rcon.SetDvar("brwns_exec_in", fmt.Sprintf("teleport %s %s", t, l))
+		cr.rcon.Tell(clientNum, fmt.Sprintf("Teleported to player %s successfully", t))
 	})
 
 	cr.RegisterCommand("fast", "res", func(clientNum int, player, xuid string, args []string) {
@@ -184,6 +194,7 @@ func RegisterAdminCommands(cr *commandRegister, bank *database.Bank) {
 			return
 		}
 
+		cr.rcon.Tell(clientNum, "Fast restart executed successfully")
 	})
 
 	cr.RegisterCommand("maprot", "mapr", func(clientNum int, player, xuid string, args []string) {
@@ -199,6 +210,7 @@ func RegisterAdminCommands(cr *commandRegister, bank *database.Bank) {
 			cr.rcon.Tell(clientNum, "Failed to rotate map")
 			return
 		}
+
 		cr.rcon.Tell(clientNum, "Map rotated successfully")
 	})
 
@@ -287,6 +299,8 @@ func RegisterAdminCommands(cr *commandRegister, bank *database.Bank) {
 
 		formatted := fmt.Sprintf("%s%s %s: ^7%s", prefix, target.Name, channel, message)
 		cr.rcon.SayRaw(formatted)
+
+		cr.rcon.Tell(clientNum, fmt.Sprintf("Message sent as %s", target.Name))
 	})
 
 	cr.RegisterCommand("loadout", "loadout", func(clientNum int, player, xuid string, args []string) {
@@ -302,20 +316,14 @@ func RegisterAdminCommands(cr *commandRegister, bank *database.Bank) {
 			return
 		}
 
-		var t, l string
-		if len(args) == 1 {
-			t = player
-			l = args[0]
-		} else {
-			l = args[1]
-			t := cr.findPlayer(args[0])
-			if t == nil || t.clientNum == -1 {
-				cr.rcon.Tell(clientNum, "Player not found")
-				return
-			}
+		t := cr.findPlayer(args[0])
+		if t == nil || t.clientNum == -1 {
+			cr.rcon.Tell(clientNum, "Player not found")
+			return
 		}
 
-		cr.rcon.SetDvar("brwns_exec_in", fmt.Sprintf("loadout %s %s", t, l))
+		cr.rcon.SetDvar("brwns_exec_in", fmt.Sprintf("loadout %s %s", t.Name, args[1]))
+		cr.rcon.Tell(clientNum, fmt.Sprintf("Set loadout %s for player %s successfully", args[1], t.Name))
 	})
 
 	cr.RegisterCommand("take", "ta", func(clientNum int, player, xuid string, args []string) {
@@ -418,6 +426,7 @@ func RegisterAdminCommands(cr *commandRegister, bank *database.Bank) {
 			cr.rcon.Tell(clientNum, "Failed to give all wallets")
 			return
 		}
+
 		cr.rcon.Say(fmt.Sprintf("Gave ^5$%s ^7to ^5%d ^7wallets", helpers.FormatMoney(amount), count))
 	})
 
