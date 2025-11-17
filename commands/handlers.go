@@ -24,6 +24,10 @@ func HandleEvents(logPath string, ctx context.Context, rc *rcon.RCONClient, logg
 	for e := range ch {
 		switch t := e.(type) {
 		case *events.KillEvent:
+			if !database.IsGamblingEnabled(db) {
+				return
+			}
+
 			reg.SetClientNum(t.AttackerXUID, t.AttackerClientNum)
 			reg.SetClientNum(t.VictimXUID, t.VictimClientNum)
 
@@ -37,6 +41,10 @@ func HandleEvents(logPath string, ctx context.Context, rc *rcon.RCONClient, logg
 
 		case *events.PlayerEvent:
 			reg.SetClientNum(t.XUID, t.Flag)
+			if !database.IsGamblingEnabled(db) {
+				return
+			}
+
 			if t.Command == "J" {
 				wlt := database.GetWallet(t.Player, t.XUID, db)
 				if wlt != nil {
