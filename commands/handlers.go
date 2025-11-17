@@ -12,7 +12,7 @@ import (
 	"github.com/Yallamaztar/events/events"
 )
 
-func HandleEvents(logPath string, ctx context.Context, rc *rcon.RCONClient, logger *log.Logger, db *sql.DB, bdb *database.Bank, reg *commandRegister) {
+func HandleEvents(logPath string, ctx context.Context, rc *rcon.RCONClient, logger *log.Logger, db *sql.DB, bdb *database.Bank, cr *commandRegister) {
 	ch := make(chan events.Event, 128)
 	go func() {
 		if err := events.TailFileContext(ctx, logPath, true, ch); err != nil {
@@ -28,8 +28,8 @@ func HandleEvents(logPath string, ctx context.Context, rc *rcon.RCONClient, logg
 				return
 			}
 
-			reg.SetClientNum(t.AttackerXUID, t.AttackerClientNum)
-			reg.SetClientNum(t.VictimXUID, t.VictimClientNum)
+			cr.SetClientNum(t.AttackerXUID, t.AttackerClientNum)
+			cr.SetClientNum(t.VictimXUID, t.VictimClientNum)
 
 			awlt := database.GetWallet(t.VictimName, t.VictimXUID, db)
 			bdb.TransferToWallet(awlt, 150)
@@ -40,7 +40,7 @@ func HandleEvents(logPath string, ctx context.Context, rc *rcon.RCONClient, logg
 			rc.Tell(t.AttackerClientNum, fmt.Sprintf("Death Penalty: ^1$%d", 200))
 
 		case *events.PlayerEvent:
-			reg.SetClientNum(t.XUID, t.Flag)
+			cr.SetClientNum(t.XUID, t.Flag)
 			if !database.IsGamblingEnabled(db) {
 				return
 			}
@@ -63,7 +63,7 @@ func HandleEvents(logPath string, ctx context.Context, rc *rcon.RCONClient, logg
 							args = parts[1:]
 						}
 
-						if reg.Exec(parts[0], t.Flag, t.Player, t.XUID, args) {
+						if cr.Exec(parts[0], t.Flag, t.Player, t.XUID, args) {
 							logger.Printf("%s: !%s %v", t.Player, parts[0], args)
 						}
 					}

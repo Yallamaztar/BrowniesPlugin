@@ -1,9 +1,9 @@
-github.com/Yallamaztar/events v0.0.0-20251110135228-96487462f859 h1:qUSFTG3kdw0n+zjLUwAFc7KuZfa1b/TizyznxOQw8q8=
-github.com/Yallamaztar/events v0.0.0-20251110135228-96487462f859/go.mod h1:b1eJqj7tC7XEgYI/ARBjp1136Jg1Z37AIGSgPkuFEuI=
 github.com/Yallamaztar/events v0.0.0-20251110170952-484f3e48e839 h1:Jb0zxV7dLe4AMWtA5qSOWRkWmOVupYn0srGKct9HkPs=
 github.com/Yallamaztar/events v0.0.0-20251110170952-484f3e48e839/go.mod h1:b1eJqj7tC7XEgYI/ARBjp1136Jg1Z37AIGSgPkuFEuI=
 github.com/bwmarrin/discordgo v0.29.0 h1:FmWeXFaKUwrcL3Cx65c20bTRW+vOb6k8AnaP+EgjDno=
 github.com/bwmarrin/discordgo v0.29.0/go.mod h1:NJZpH+1AfhIcyQsPeuBKsUtYrRnjkyu0kIVMCHkZtRY=
+github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 h1:El6M4kTTCOh6aBiKaUGG7oYTSPP8MxqL4YI3kZKwcP4=
+github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510/go.mod h1:pupxD2MaaD3pAXIBCelhxNneeOaAeabZDe5s4K6zSpQ=
 github.com/gorilla/websocket v1.4.2 h1:+/TMaTYc4QFitKJxsQ7Yye35DkWvkdLcvGKqM+x0Ufc=
 github.com/gorilla/websocket v1.4.2/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
 github.com/mattn/go-sqlite3 v1.14.32 h1:JD12Ag3oLy1zQA+BNn74xRgaBbdhbNIDYvQUEuuErjs=

@@ -7,9 +7,75 @@ import (
 
 	"github.com/Yallamaztar/BrowniesGambling/database"
 	"github.com/Yallamaztar/BrowniesGambling/helpers"
+	"github.com/google/shlex"
 )
 
 func RegisterAdminCommands(cr *commandRegister, bank *database.Bank) {
+	cr.RegisterCommand("dropgun", "dg", func(clientNum int, player, xuid string, args []string) {
+		isAdmin, _ := database.IsAdmin(cr.db, xuid)
+		isOwner, _ := database.IsOwner(cr.db, xuid)
+		if !isAdmin && !isOwner {
+			cr.rcon.Tell(clientNum, "You do not have permission to use this command")
+			return
+		}
+
+		var target string
+		if len(args) == 0 {
+			target = player
+		} else {
+			target = args[0]
+		}
+
+		t := cr.findPlayer(target)
+		if t == nil || t.clientNum == -1 {
+			cr.rcon.Tell(clientNum, "Player not found")
+			return
+		}
+
+		cr.rcon.SetDvar("brwns_exec_in", fmt.Sprintf("dropgun %s %s", player, t.Name))
+	})
+
+	cr.RegisterCommand("youtube", "yt", func(clientNum int, player, xuid string, args []string) {
+		isAdmin, _ := database.IsAdmin(cr.db, xuid)
+		isOwner, _ := database.IsOwner(cr.db, xuid)
+		if !isAdmin && !isOwner {
+			cr.rcon.Tell(clientNum, "You do not have permission to use this command")
+			return
+		}
+
+		if len(args) < 1 {
+			cr.rcon.Tell(clientNum, "Usage: ^5!youtube ^7<player>")
+			return
+		}
+
+		t := cr.findPlayer(args[0])
+		if t == nil || t.clientNum == -1 {
+			cr.rcon.Tell(clientNum, "Player not found")
+			return
+		}
+
+		if err := cr.rcon.Kick(t.clientNum, "Go ^5Watch ^7A ^5Tutorial ^7At ^1www.youtube.com/@BrowniesSnD"); err != nil {
+			cr.rcon.Tell(clientNum, fmt.Sprintf("Failed to kick %s", t.Name))
+			return
+		}
+	})
+
+	cr.RegisterCommand("friendlyfire", "ff", func(clientNum int, player, xuid string, args []string) {
+		isAdmin, _ := database.IsAdmin(cr.db, xuid)
+		isOwner, _ := database.IsOwner(cr.db, xuid)
+		if !isAdmin && !isOwner {
+			cr.rcon.Tell(clientNum, "You do not have permission to use this command")
+			return
+		}
+
+		if len(args) < 1 {
+			cr.rcon.Tell(clientNum, "Usage: ^5!friendlyfire ^7<on|off>")
+			return
+		}
+
+		cr.rcon.SetDvar("brwns_exec_in", fmt.Sprintf("friendlyfire %s %s", player, strings.ToLower(args[0])))
+	})
+
 	cr.RegisterCommand("setgravity", "sg", func(clientNum int, player, xuid string, args []string) {
 		isAdmin, _ := database.IsAdmin(cr.db, xuid)
 		isOwner, _ := database.IsOwner(cr.db, xuid)
@@ -19,18 +85,33 @@ func RegisterAdminCommands(cr *commandRegister, bank *database.Bank) {
 		}
 
 		if len(args) < 1 {
-			cr.rcon.Tell(clientNum, "Usage: ^5!setgravity ^7<gravity>")
+			cr.rcon.Tell(clientNum, "Usage: ^5!setgravity ^7<player (optional)> <gravity>")
 			return
 		}
 
-		gravity, err := strconv.ParseFloat(args[0], 64)
+		var target string
+		var gravityStr string
+		if len(args) == 1 {
+			target = player
+			gravityStr = args[0]
+		} else {
+			target = args[0]
+			gravityStr = args[1]
+		}
+
+		t := cr.findPlayer(target)
+		if t == nil || t.clientNum == -1 {
+			cr.rcon.Tell(clientNum, "Player not found")
+			return
+		}
+
+		gravity, err := strconv.ParseFloat(gravityStr, 64)
 		if err != nil || gravity <= 0 {
 			cr.rcon.Tell(clientNum, "Invalid gravity")
 			return
 		}
 
-		cr.rcon.SetDvar("brwns_exec_in", fmt.Sprintf("setgravity %s %f", player, gravity))
-		cr.rcon.Tell(clientNum, fmt.Sprintf("Gravity set to %f successfully", gravity))
+		cr.rcon.SetDvar("brwns_exec_in", fmt.Sprintf("setgravity %s %s %f", player, t.Name, gravity))
 	})
 
 	cr.RegisterCommand("setspeed", "ss", func(clientNum int, player, xuid string, args []string) {
@@ -42,18 +123,33 @@ func RegisterAdminCommands(cr *commandRegister, bank *database.Bank) {
 		}
 
 		if len(args) < 1 {
-			cr.rcon.Tell(clientNum, "Usage: ^5!setspeed ^7<speed>")
+			cr.rcon.Tell(clientNum, "Usage: ^5!setspeed ^7<player (optional)> <speed>")
 			return
 		}
 
-		speed, err := strconv.ParseFloat(args[0], 64)
+		var target string
+		var speedStr string
+		if len(args) == 1 {
+			target = player
+			speedStr = args[0]
+		} else {
+			target = args[0]
+			speedStr = args[1]
+		}
+
+		t := cr.findPlayer(target)
+		if t == nil || t.clientNum == -1 {
+			cr.rcon.Tell(clientNum, "Player not found")
+			return
+		}
+
+		speed, err := strconv.ParseFloat(speedStr, 64)
 		if err != nil || speed <= 0 {
 			cr.rcon.Tell(clientNum, "Invalid speed")
 			return
 		}
 
-		cr.rcon.SetDvar("brwns_exec_in", fmt.Sprintf("setspeed %s %f", player, speed))
-		cr.rcon.Tell(clientNum, fmt.Sprintf("Speed set to %f successfully", speed))
+		cr.rcon.SetDvar("brwns_exec_in", fmt.Sprintf("setspeed %s %s %f", player, t.Name, speed))
 	})
 
 	cr.RegisterCommand("killplayer", "kpl", func(clientNum int, player, xuid string, args []string) {
@@ -64,26 +160,20 @@ func RegisterAdminCommands(cr *commandRegister, bank *database.Bank) {
 			return
 		}
 
-		if len(args) < 1 {
-			cr.rcon.Tell(clientNum, "Usage: ^5!killplayer ^7<player>")
+		var target string
+		if len(args) == 0 {
+			target = player
+		} else {
+			target = args[0]
+		}
+
+		t := cr.findPlayer(target)
+		if t == nil || t.clientNum == -1 {
+			cr.rcon.Tell(clientNum, "Player not found")
 			return
 		}
 
-		var t, l string
-		if len(args) == 1 {
-			t = player
-			l = args[0]
-		} else {
-			l = args[1]
-			t := cr.findPlayer(args[0])
-			if t == nil || t.clientNum == -1 {
-				cr.rcon.Tell(clientNum, "Player not found")
-				return
-			}
-		}
-
-		cr.rcon.SetDvar("brwns_exec_in", fmt.Sprintf("killplayer %s %s", t, l))
-		cr.rcon.Tell(clientNum, fmt.Sprintf("Killed player %s successfully", t))
+		cr.rcon.SetDvar("brwns_exec_in", fmt.Sprintf("killplayer %s %s", player, t.Name))
 	})
 
 	cr.RegisterCommand("hide", "hd", func(clientNum int, player, xuid string, args []string) {
@@ -94,30 +184,20 @@ func RegisterAdminCommands(cr *commandRegister, bank *database.Bank) {
 			return
 		}
 
-		if len(args) < 1 {
-			cr.rcon.Tell(clientNum, "Usage: ^5!hide ^7<player>")
+		var target string
+		if len(args) == 0 {
+			target = player
+		} else {
+			target = args[0]
+		}
+
+		t := cr.findPlayer(target)
+		if t == nil || t.clientNum == -1 {
+			cr.rcon.Tell(clientNum, "Player not found")
 			return
 		}
 
-		var t, l string
-		if len(args) == 1 {
-			t = player
-			l = args[0]
-		} else {
-			l = args[1]
-			t := cr.findPlayer(args[0])
-			if t == nil || t.clientNum == -1 {
-				cr.rcon.Tell(clientNum, "Player not found")
-				return
-			}
-		}
-
-		cr.rcon.SetDvar("brwns_exec_in", fmt.Sprintf("hide %s %s", t, l))
-		if t == l {
-			cr.rcon.Tell(clientNum, "Hide enabled")
-		} else {
-			cr.rcon.Tell(clientNum, fmt.Sprintf("Hid player %s successfully", t))
-		}
+		cr.rcon.SetDvar("brwns_exec_in", fmt.Sprintf("hide %s %s", player, t.Name))
 	})
 
 	cr.RegisterCommand("spectator", "spec", func(clientNum int, player, xuid string, args []string) {
@@ -128,26 +208,20 @@ func RegisterAdminCommands(cr *commandRegister, bank *database.Bank) {
 			return
 		}
 
-		if len(args) < 1 {
-			cr.rcon.Tell(clientNum, "Usage: ^5!spectator ^7<player>")
+		var target string
+		if len(args) == 0 {
+			target = player
+		} else {
+			target = args[0]
+		}
+
+		t := cr.findPlayer(target)
+		if t == nil || t.clientNum == -1 {
+			cr.rcon.Tell(clientNum, "Player not found")
 			return
 		}
 
-		var t, l string
-		if len(args) == 1 {
-			t = player
-			l = args[0]
-		} else {
-			l = args[1]
-			t := cr.findPlayer(args[0])
-			if t == nil || t.clientNum == -1 {
-				cr.rcon.Tell(clientNum, "Player not found")
-				return
-			}
-		}
-
-		cr.rcon.SetDvar("brwns_exec_in", fmt.Sprintf("spectator %s %s", t, l))
-		cr.rcon.Tell(clientNum, fmt.Sprintf("Set spectator mode for player %s successfully", t))
+		cr.rcon.SetDvar("brwns_exec_in", fmt.Sprintf("spectator %s %s", player, t.Name))
 	})
 
 	cr.RegisterCommand("teleport", "tp", func(clientNum int, player, xuid string, args []string) {
@@ -157,27 +231,28 @@ func RegisterAdminCommands(cr *commandRegister, bank *database.Bank) {
 			cr.rcon.Tell(clientNum, "You do not have permission to use this command")
 			return
 		}
-
-		if len(args) < 2 {
-			cr.rcon.Tell(clientNum, "Usage: ^5!teleport ^7<player> <target>")
+		if len(args) == 0 {
+			cr.rcon.Tell(clientNum, "Usage: ^5!teleport ^7<player (optional)> <target>")
 			return
 		}
 
-		var t, l string
-		if len(args) == 2 {
-			t = args[0]
-			l = args[1]
-		} else {
-			l = args[1]
+		if len(args) == 1 {
 			t := cr.findPlayer(args[0])
 			if t == nil || t.clientNum == -1 {
 				cr.rcon.Tell(clientNum, "Player not found")
 				return
 			}
+			cr.rcon.SetDvar("brwns_exec_in", fmt.Sprintf("teleport %s %s", player, t.Name))
+			return
 		}
 
-		cr.rcon.SetDvar("brwns_exec_in", fmt.Sprintf("teleport %s %s", t, l))
-		cr.rcon.Tell(clientNum, fmt.Sprintf("Teleported to player %s successfully", t))
+		src := cr.findPlayer(args[0])
+		dst := cr.findPlayer(args[1])
+		if src == nil || dst == nil || src.clientNum == -1 || dst.clientNum == -1 {
+			cr.rcon.Tell(clientNum, "Player not found")
+			return
+		}
+		cr.rcon.SetDvar("brwns_exec_in", fmt.Sprintf("teleport %s %s", src.Name, dst.Name))
 	})
 
 	cr.RegisterCommand("fast", "res", func(clientNum int, player, xuid string, args []string) {
@@ -243,7 +318,7 @@ func RegisterAdminCommands(cr *commandRegister, bank *database.Bank) {
 		}
 	})
 
-	cr.RegisterCommand("sayas", "sayas", func(clientNum int, player, xuid string, args []string) {
+	cr.RegisterCommand("sayas", "says", func(clientNum int, player, xuid string, args []string) {
 		isAdmin, _ := database.IsAdmin(cr.db, xuid)
 		isOwner, _ := database.IsOwner(cr.db, xuid)
 		if !isAdmin && !isOwner {
@@ -251,24 +326,28 @@ func RegisterAdminCommands(cr *commandRegister, bank *database.Bank) {
 			return
 		}
 
+		parsed, err := shlex.Split(strings.Join(args, " "))
+		if err != nil {
+			cr.rcon.Tell(clientNum, "Invalid arguments")
+			return
+		}
+		args = parsed
+
 		if len(args) < 2 {
 			cr.rcon.Tell(clientNum, "Usage: ^5!sayas ^7<player> <message> [-d] [-e]")
 			return
 		}
 
 		var dead, enemy bool
+		filtered := make([]string, 0, len(args))
+
 		for _, arg := range args {
 			switch arg {
 			case "-d":
 				dead = true
 			case "-e":
 				enemy = true
-			}
-		}
-
-		filtered := make([]string, 0, len(args))
-		for _, arg := range args {
-			if arg != "-d" && arg != "-e" {
+			default:
 				filtered = append(filtered, arg)
 			}
 		}
@@ -278,13 +357,12 @@ func RegisterAdminCommands(cr *commandRegister, bank *database.Bank) {
 			return
 		}
 
+		trgt := filtered[0]
 		message := strings.Join(filtered[1:], " ")
 
-		target := cr.findPlayer(filtered[0])
+		target := cr.findPlayer(trgt)
 		if target == nil || target.clientNum == -1 {
-			target = &playerInfo{
-				Name: filtered[0],
-			}
+			target = &playerInfo{Name: trgt}
 		}
 
 		prefix := "^2"
@@ -292,18 +370,16 @@ func RegisterAdminCommands(cr *commandRegister, bank *database.Bank) {
 		if enemy {
 			prefix = "^1"
 		}
-
 		if dead {
 			channel = "[Dead-All]"
 		}
 
 		formatted := fmt.Sprintf("%s%s %s: ^7%s", prefix, target.Name, channel, message)
 		cr.rcon.SayRaw(formatted)
-
 		cr.rcon.Tell(clientNum, fmt.Sprintf("Message sent as %s", target.Name))
 	})
 
-	cr.RegisterCommand("loadout", "loadout", func(clientNum int, player, xuid string, args []string) {
+	cr.RegisterCommand("loadout", "ld", func(clientNum int, player, xuid string, args []string) {
 		isAdmin, _ := database.IsAdmin(cr.db, xuid)
 		isOwner, _ := database.IsOwner(cr.db, xuid)
 		if !isAdmin && !isOwner {
@@ -312,18 +388,26 @@ func RegisterAdminCommands(cr *commandRegister, bank *database.Bank) {
 		}
 
 		if len(args) == 0 {
-			cr.rcon.Tell(clientNum, "Usage: ^5!loadout ^7<player> <loadout> ^4or ^5!loadout ^7<loadout>")
+			cr.rcon.Tell(clientNum, "Usage: ^5!loadout ^7<player> <loadout> ^4or ^5!ld ^7<loadout>")
 			return
 		}
 
-		t := cr.findPlayer(args[0])
+		var trgt, loadout string
+		if len(args) == 1 {
+			trgt = player
+			loadout = args[0]
+		} else {
+			trgt = args[0]
+			loadout = args[1]
+		}
+
+		t := cr.findPlayer(trgt)
 		if t == nil || t.clientNum == -1 {
 			cr.rcon.Tell(clientNum, "Player not found")
 			return
 		}
 
-		cr.rcon.SetDvar("brwns_exec_in", fmt.Sprintf("loadout %s %s", t.Name, args[1]))
-		cr.rcon.Tell(clientNum, fmt.Sprintf("Set loadout %s for player %s successfully", args[1], t.Name))
+		cr.rcon.SetDvar("brwns_exec_in", fmt.Sprintf("loadout %s %s %s", player, t.Name, loadout))
 	})
 
 	cr.RegisterCommand("take", "ta", func(clientNum int, player, xuid string, args []string) {

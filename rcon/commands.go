@@ -214,12 +214,12 @@ func (rc *RCONClient) Tell(clientNum int, message string) error {
 }
 
 // Kick a player with reason
-func (rc *RCONClient) Kick(player, reason string) error {
-	if player == "" || reason == "" {
-		return fmt.Errorf("player and reason cannot be empty")
+func (rc *RCONClient) Kick(clientNum int, reason string) error {
+	if clientNum == -1 || reason == "" {
+		return fmt.Errorf("clientNum and reason cannot be empty")
 	}
 
-	cmd := fmt.Sprintf("%s '%s'", player, reason)
+	cmd := fmt.Sprintf("%d %s", clientNum, reason)
 	_, err := rc.SendCommand("clientkick_for_reason", &cmd)
 	return err
 }

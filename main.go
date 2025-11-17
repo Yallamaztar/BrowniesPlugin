@@ -12,8 +12,10 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/Yallamaztar/BrowniesGambling/bot"
 	"github.com/Yallamaztar/BrowniesGambling/commands"
 	"github.com/Yallamaztar/BrowniesGambling/database"
+	"github.com/Yallamaztar/BrowniesGambling/helpers"
 	"github.com/Yallamaztar/BrowniesGambling/rcon"
 )
 
@@ -143,8 +145,11 @@ func main() {
 	reg.RegisterCommands(db, bdb, rc)
 
 	go commands.HandleEvents(path, ctx, rc, logger, db, bdb, reg)
+	go bot.RunDiscordBot(ctx, os.Getenv("BOT_TOKEN"), rc, logger)
+	helpers.OnReadyWebhook()
 
 	<-ctx.Done()
 	rc.Close()
 	db.Close()
+	helpers.OnShutdownWebhook()
 }

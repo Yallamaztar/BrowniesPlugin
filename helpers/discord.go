@@ -107,3 +107,25 @@ func GamblingMaxBetWebhook(amount int64) {
 		}},
 	})
 }
+
+func OnReadyWebhook() {
+	SendWebhook(webhookPayload{
+		Embeds: []embed{{
+			Title:       "Brownies Plugin is Online ✅",
+			Description: "The Brownies Plugin has started and is now online",
+			Color:       0x00ff00,
+			Timestamp:   time.Now().UTC().Format(time.RFC3339),
+		}},
+	})
+}
+
+func OnShutdownWebhook() {
+	SendWebhook(webhookPayload{
+		Embeds: []embed{{
+			Title:       "Brownies Plugin is Offline ❌",
+			Description: "The Brownies Plugin has been shut down and is now offline",
+			Color:       0xff0000,
+			Timestamp:   time.Now().UTC().Format(time.RFC3339),
+		}},
+	})
+}
