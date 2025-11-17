@@ -6,9 +6,41 @@ import (
 	"strings"
 
 	"github.com/Yallamaztar/BrowniesGambling/database"
+	"github.com/Yallamaztar/BrowniesGambling/helpers"
 )
 
 func RegisterAdminCommands(cr *commandRegister, bank *database.Bank) {
+	cr.RegisterCommand("fastrestart", "fr", func(clientNum int, player, xuid string, args []string) {
+		isAdmin, _ := database.IsAdmin(cr.db, xuid)
+		isOwner, _ := database.IsOwner(cr.db, xuid)
+		if !isAdmin && !isOwner {
+			cr.rcon.Tell(clientNum, "You do not have permission to use this command")
+			return
+		}
+
+		err := cr.rcon.FastRestart()
+		if err != nil {
+			cr.rcon.Tell(clientNum, "Failed to fast restart")
+			return
+		}
+
+	})
+	cr.RegisterCommand("maprotate", "mr", func(clientNum int, player, xuid string, args []string) {
+		isAdmin, _ := database.IsAdmin(cr.db, xuid)
+		isOwner, _ := database.IsOwner(cr.db, xuid)
+		if !isAdmin && !isOwner {
+			cr.rcon.Tell(clientNum, "You do not have permission to use this command")
+			return
+		}
+
+		err := cr.rcon.MapRotate()
+		if err != nil {
+			cr.rcon.Tell(clientNum, "Failed to rotate map")
+			return
+		}
+		cr.rcon.Tell(clientNum, "Map rotated successfully")
+	})
+
 	cr.RegisterCommand("gadmins", "gay", func(clientNum int, player, xuid string, args []string) {
 		isAdmin, _ := database.IsAdmin(cr.db, xuid)
 		isOwner, _ := database.IsOwner(cr.db, xuid)
@@ -37,6 +69,7 @@ func RegisterAdminCommands(cr *commandRegister, bank *database.Bank) {
 			cr.rcon.Tell(clientNum, fmt.Sprintf("[^5admin^7] %s | ^5XUID: ^7%s", admin.Player, admin.XUID))
 		}
 	})
+
 	cr.RegisterCommand("sayas", "sayas", func(clientNum int, player, xuid string, args []string) {
 		isAdmin, _ := database.IsAdmin(cr.db, xuid)
 		isOwner, _ := database.IsOwner(cr.db, xuid)
@@ -105,19 +138,26 @@ func RegisterAdminCommands(cr *commandRegister, bank *database.Bank) {
 			return
 		}
 
-		if len(args) < 2 {
-			cr.rcon.Tell(clientNum, "Usage: ^5!loadout ^7<player> <loadout>")
+		if len(args) == 0 {
+			cr.rcon.Tell(clientNum, "Usage: ^5!loadout ^7<player> <loadout> ^4or ^5!loadout ^7<loadout>")
 			return
 		}
 
-		t := cr.findPlayer(args[0])
-		if t == nil || t.clientNum == -1 {
-			cr.rcon.Tell(clientNum, "Player not found")
-			return
+		var t, l string
+		if len(args) == 1 {
+			t = player
+			l = args[0]
+		} else {
+			l = args[1]
+			t := cr.findPlayer(args[0])
+			if t == nil || t.clientNum == -1 {
+				cr.rcon.Tell(clientNum, "Player not found")
+				return
+			}
 		}
 
 		cr.rcon.SetDvar("brwns_enabled", "1")
-		cr.rcon.SetDvar("brwns_exec_in", fmt.Sprintf("loadout %s %s", args[0], args[1]))
+		cr.rcon.SetDvar("brwns_exec_in", fmt.Sprintf("loadout %s %s", t, l))
 	})
 
 	cr.RegisterCommand("take", "ta", func(clientNum int, player, xuid string, args []string) {
@@ -157,9 +197,9 @@ func RegisterAdminCommands(cr *commandRegister, bank *database.Bank) {
 			database.TransferFromWalletToWallet(twlt, owlt, amount)
 		}
 
-		cr.rcon.Tell(clientNum, fmt.Sprintf("Took ^5$%d ^7from %s", amount, t.Name))
+		cr.rcon.Tell(clientNum, fmt.Sprintf("Took ^5$%s ^7from %s", helpers.FormatMoney(amount), t.Name))
 		if t.clientNum != -1 {
-			cr.rcon.Tell(t.clientNum, fmt.Sprintf("^5%s ^7took ^5$%d from you", player, amount))
+			cr.rcon.Tell(t.clientNum, fmt.Sprintf("^5%s ^7took ^5$%s from you", player, helpers.FormatMoney(amount)))
 		}
 
 		cr.logger.Printf("%s took $%d from %s", player, amount, t.Name)
@@ -209,7 +249,7 @@ func RegisterAdminCommands(cr *commandRegister, bank *database.Bank) {
 			atotal, _ := database.AdminGiveTotal(cr.db, xuid)
 			max := bank.Balance() / 20
 			if atotal+amount > max {
-				cr.rcon.Tell(clientNum, fmt.Sprintf("Admins can only give up to $%d total (you have given $%d)", max, atotal))
+				cr.rcon.Tell(clientNum, fmt.Sprintf("Admins can only give up to $%s total (you have given $%s)", helpers.FormatMoney(max), helpers.FormatMoney(atotal)))
 				return
 			}
 			database.IncrementAdminGiveTotal(cr.db, xuid, amount)
@@ -220,7 +260,7 @@ func RegisterAdminCommands(cr *commandRegister, bank *database.Bank) {
 			cr.rcon.Tell(clientNum, "Failed to give all wallets")
 			return
 		}
-		cr.rcon.Say(fmt.Sprintf("Gave ^5$%d ^7to ^5%d ^7wallets", amount, count))
+		cr.rcon.Say(fmt.Sprintf("Gave ^5$%s ^7to ^5%d ^7wallets", helpers.FormatMoney(amount), count))
 	})
 
 	cr.RegisterCommand("give", "gi", func(clientNum int, player, xuid string, args []string) {
@@ -254,17 +294,17 @@ func RegisterAdminCommands(cr *commandRegister, bank *database.Bank) {
 			atotal, _ := database.AdminGiveTotal(cr.db, xuid)
 			max := bank.Balance() / 20
 			if atotal+amount > max {
-				cr.rcon.Tell(clientNum, fmt.Sprintf("Admins can only give up to $%d total (you have given $%d)", max, atotal))
+				cr.rcon.Tell(clientNum, fmt.Sprintf("Admins can only give up to $%s total (you have given $%s)", helpers.FormatMoney(max), helpers.FormatMoney(atotal)))
 				return
 			}
 			database.IncrementAdminGiveTotal(cr.db, xuid, amount)
 		}
 
 		bank.TransferToWallet(wlt, amount)
-		cr.rcon.Tell(clientNum, fmt.Sprintf("Gave ^5$%d ^7to %s", amount, t.Name))
+		cr.rcon.Tell(clientNum, fmt.Sprintf("Gave ^5$%s ^7to %s", helpers.FormatMoney(amount), t.Name))
 		if tcn, ok := cr.GetClientNum(t.XUID); ok {
-			cr.rcon.Tell(tcn, fmt.Sprintf("You received ^5$%d ^7from %s", amount, player))
+			cr.rcon.Tell(tcn, fmt.Sprintf("You received ^5$%s ^7from %s", helpers.FormatMoney(amount), player))
 		}
-		cr.logger.Printf("%s gave $%d to %s from bank", player, amount, t.Name)
+		cr.logger.Printf("%s gave $%s to %s from bank", player, helpers.FormatMoney(amount), t.Name)
 	})
 }

@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/Yallamaztar/BrowniesGambling/database"
+	"github.com/Yallamaztar/BrowniesGambling/helpers"
 )
 
 func RegisterClientCommands(cr *commandRegister, bank *database.Bank) {
@@ -22,7 +23,7 @@ func RegisterClientCommands(cr *commandRegister, bank *database.Bank) {
 		}
 
 		for i, rw := range wallets {
-			cr.rcon.Say(fmt.Sprintf("[^5#%d^7] %s ^7- ^5$%d", i+1, rw.Player, rw.Balance))
+			cr.rcon.Say(fmt.Sprintf("[^5#%d^7] %s ^7- ^5$%s", i+1, rw.Player, helpers.FormatMoney(rw.Balance)))
 		}
 	})
 
@@ -70,9 +71,9 @@ func RegisterClientCommands(cr *commandRegister, bank *database.Bank) {
 			return
 		}
 
-		cr.rcon.Tell(clientNum, fmt.Sprintf("Paid ^5$%d ^7to %s", amount, t.Name))
+		cr.rcon.Tell(clientNum, fmt.Sprintf("Paid ^5$%s ^7to %s", helpers.FormatMoney(amount), t.Name))
 		if targetCN, ok := cr.GetClientNum(t.XUID); ok {
-			cr.rcon.Tell(targetCN, fmt.Sprintf("You received ^5$%d ^7from %s", amount, player))
+			cr.rcon.Tell(targetCN, fmt.Sprintf("You received ^5$%s ^7from %s", helpers.FormatMoney(amount), player))
 		}
 	})
 
@@ -87,7 +88,7 @@ func RegisterClientCommands(cr *commandRegister, bank *database.Bank) {
 			cr.rcon.Tell(clientNum, "Available commands:")
 			cr.rcon.Tell(clientNum, "^5!balance ^7[player] (^5!bal^7) - Check wallet balance")
 			cr.rcon.Tell(clientNum, "^5!pay ^7<player> <amount> (^5!pp^7) - Pay another player")
-			cr.rcon.Tell(clientNum, "^5!bankbalance (^5!bankbal) - Check bank balance")
+			cr.rcon.Tell(clientNum, "^5!bankbalance (^5!bank^7) - Check bank balance")
 			cr.rcon.Tell(clientNum, "^5!help 3 ^7- More commands")
 
 		case "3":
@@ -106,26 +107,25 @@ func RegisterClientCommands(cr *commandRegister, bank *database.Bank) {
 
 	})
 
-	cr.RegisterCommand("bankbalance", "bankbal", func(clientNum int, player, xuid string, args []string) {
-		cr.rcon.Tell(clientNum, fmt.Sprintf("Bank ^5balance: ^7$%d", bank.Balance()))
+	cr.RegisterCommand("bankbalance", "bank", func(clientNum int, player, xuid string, args []string) {
+		cr.rcon.Tell(clientNum, fmt.Sprintf("Bank ^5balance: ^7$%s", helpers.FormatMoney(bank.Balance())))
 	})
 
 	cr.RegisterCommand("balance", "bal", func(clientNum int, player, xuid string, args []string) {
 		if len(args) == 0 {
 			wlt := database.GetWallet(player, xuid, cr.db)
 			if wlt != nil {
-				cr.rcon.Tell(clientNum, fmt.Sprintf("Your wallet ^5balance: ^7$%d", wlt.Balance()))
+				cr.rcon.Tell(clientNum, fmt.Sprintf("Your wallet ^5balance: ^7$%s", helpers.FormatMoney(wlt.Balance())))
 			}
 		} else {
-			target := args[0]
-			t := cr.findPlayer(target)
+			t := cr.findPlayer(args[0])
 			wlt := database.GetWallet(t.Name, t.XUID, cr.db)
 			if wlt != nil {
 				if wlt.Balance() < 0 {
-					cr.rcon.Tell(clientNum, fmt.Sprintf("%s ^5balance: ^7%d$", t.Name, wlt.Balance()))
+					cr.rcon.Tell(clientNum, fmt.Sprintf("%s ^5balance: ^7%s", t.Name, helpers.FormatMoney(wlt.Balance())))
 					return
 				}
-				cr.rcon.Tell(clientNum, fmt.Sprintf("%s ^5balance: ^7$%d", t.Name, wlt.Balance()))
+				cr.rcon.Tell(clientNum, fmt.Sprintf("%s ^5balance: ^7$%s", t.Name, helpers.FormatMoney(wlt.Balance())))
 			} else {
 				cr.rcon.Tell(clientNum, "Player wallet not found")
 			}
@@ -170,12 +170,12 @@ func RegisterClientCommands(cr *commandRegister, bank *database.Bank) {
 
 		if rand.Float64() < 0.45 {
 			bank.TransferToWallet(wlt, bet)
-			cr.rcon.Tell(clientNum, fmt.Sprintf("You ^5won! ^7$%d", bet))
-			cr.rcon.Say(fmt.Sprintf("%s just ^5won ^7$%d in gambling!", player, bet))
+			cr.rcon.Tell(clientNum, fmt.Sprintf("You ^5won! ^7$%s", helpers.FormatMoney(bet)))
+			cr.rcon.Say(fmt.Sprintf("%s just ^5won ^7$%s in gambling!", player, helpers.FormatMoney(bet)))
 		} else {
 			bank.TransferFromWallet(wlt, bet)
-			cr.rcon.Tell(clientNum, fmt.Sprintf("You ^1lost! ^7$%d", bet))
-			cr.rcon.Say(fmt.Sprintf("%s just ^1lost ^7$%d in gambling!", player, bet))
+			cr.rcon.Tell(clientNum, fmt.Sprintf("You ^1lost! ^7$%s", helpers.FormatMoney(bet)))
+			cr.rcon.Say(fmt.Sprintf("%s just ^1lost ^7$%s in gambling!", player, helpers.FormatMoney(bet)))
 		}
 	})
 }

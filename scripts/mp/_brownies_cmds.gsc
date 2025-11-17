@@ -1,20 +1,19 @@
-registerAllCommands()
-{
-    // server command
+registerAllCommands() {
+    // server command to verify that the script is loaded
     scripts\mp\_brownies_core::RegisterCommand("onstart", "onstart", ::onStart, 0);
 
     // rcon commands
-    scripts\mp\_brownies_core::RegisterCommand("killplayer",  "kpl",  ::killPlayer,    1);
-    scripts\mp\_brownies_core::RegisterCommand("hide",        "hd",   ::hidePlayer,    1);
-    scripts\mp\_brownies_core::RegisterCommand("spectator",   "spec", ::setSpectator,  1);
-    scripts\mp\_brownies_core::RegisterCommand("sayto",       "st",   ::sayTo,         2);
-    scripts\mp\_brownies_core::RegisterCommand("takeweapons", "tw",   ::takeWeapons,   1);
-    scripts\mp\_brownies_core::RegisterCommand("freeze",      "frz",  ::freezePlayer,  1);
-    scripts\mp\_brownies_core::RegisterCommand("slap",        "sl",   ::slapPlayer,    1);
-    scripts\mp\_brownies_core::RegisterCommand("loadout",     "ld",   ::loadout,       2);
-    // scripts\mp\_brownies_core::RegisterCommand("teleport",    "tp",   ::teleport,      2);
-    // scripts\mp\_brownies_core::RegisterCommand("setspeed",    "ss",   ::setSpeed,      2);
-    // scripts\mp\_brownies_core::RegisterCommand("giveweapon",  "gw",   ::giveWeapon,    2);
+    scripts\mp\_brownies_core::RegisterCommand("killplayer",  ::impl_killplayer);
+    scripts\mp\_brownies_core::RegisterCommand("hide",        ::impl_hideplayer);
+    scripts\mp\_brownies_core::RegisterCommand("spectator",   ::impl_setspectator);
+    scripts\mp\_brownies_core::RegisterCommand("sayto",       ::impl_sayto);
+    scripts\mp\_brownies_core::RegisterCommand("takeweapons", ::impl_takeweapons);
+    scripts\mp\_brownies_core::RegisterCommand("freeze",      ::impl_freezeplayer);
+    scripts\mp\_brownies_core::RegisterCommand("slap",        ::impl_slapplayer);
+    scripts\mp\_brownies_core::RegisterCommand("loadout",     ::impl_loadout);
+    // scripts\mp\_brownies_core::RegisterCommand("teleport", ::impl_teleport);
+    // scripts\mp\_brownies_core::RegisterCommand("setspeed", ::impl_setSpeed);
+    // scripts\mp\_brownies_core::RegisterCommand("giveweapon", ::impl_giveWeapon);
 }
 
 onStart(args) {
@@ -23,7 +22,7 @@ onStart(args) {
     SetDvar(level.browniesPrefix + "exec_out", "");
 }
 
-killPlayer(args) {
+impl_killplayer(args) {
     if ( !isDefined(args) || args.size < 1 ) {
         return;
     }
@@ -34,7 +33,7 @@ killPlayer(args) {
     }
 }
 
-hidePlayer(args) {
+impl_hideplayer(args) {
     if ( !isDefined(args) || args.size < 1 ) {
         return;
     }
@@ -55,7 +54,7 @@ hidePlayer(args) {
     }
 }
 
-teleport(args) {
+impl_teleport(args) {
     if (args.size == 2) {
         p = scripts\mp\_brownies_core::findPlayerByName(args[0]);
         t = scripts\mp\_brownies_core::findPlayerByName(args[1]);
@@ -78,7 +77,7 @@ teleport(args) {
     }
 }
 
-setSpectator(args) {
+impl_setspectator(args) {
     p = scripts\mp\_brownies_core::findPlayerByName(args[0]);
 
     if (!isDefined(p) || p.pers["team"] == "spectator") {
@@ -88,7 +87,7 @@ setSpectator(args) {
     p [[level.spectator]]();
 }
 
-sayTo(args) {
+impl_sayto(args) {
     if (args.size < 2) return;
     p = scripts\mp\_brownies_core::findPlayerByName(args[0]);
     if (!isDefined(p)) return;
@@ -100,7 +99,7 @@ sayTo(args) {
     p IPrintLnBold(msg);
 }
 
-giveWeapon(args) {
+impl_giveweapon(args) {
     if (args.size < 2) return;
     p = scripts\mp\_brownies_core::findPlayerByName(args[0]);
     if (!isDefined(p) || !IsAlive(p)) return;
@@ -110,7 +109,7 @@ giveWeapon(args) {
     p SwitchToWeapon(weapon);
 }
 
-takeWeapons(args) {
+impl_takeweapons(args) {
     if (args.size < 1) return;
     p = scripts\mp\_brownies_core::findPlayerByName(args[0]);
     if (!isDefined(p) || !IsAlive(p)) return;
@@ -118,7 +117,7 @@ takeWeapons(args) {
     p TakeAllWeapons();
 }
 
-freezePlayer(args) {
+impl_freezeplayer(args) {
     if (args.size < 1) return;
     p = scripts\mp\_brownies_core::findPlayerByName(args[0]);
     if (!isDefined(p)) return;
@@ -133,7 +132,7 @@ freezePlayer(args) {
     }
 }
 
-setSpeed(args) {
+impl_setspeed(args) {
     if (args.size < 2) return;
     p = scripts\mp\_brownies_core::findPlayerByName(args[0]);
     if (!isDefined(p) || !IsAlive(p)) return;
@@ -142,7 +141,7 @@ setSpeed(args) {
     p SetMoveSpeedScale(speed);
 }
 
-slapPlayer(args) {
+impl_slapplayer(args) {
     if (args.size < 1) return;
     p = scripts\mp\_brownies_core::findPlayerByName(args[0]);
     if (!isDefined(p) || !IsAlive(p)) return;
@@ -151,7 +150,7 @@ slapPlayer(args) {
     p SetVelocity(dir);
 }
 
-loadout(args) {
+impl_loadout(args) {
     if (args.size < 2) return;
     p = scripts\mp\_brownies_core::findPlayerByName(args[0]);
     if (!isDefined(p) || !IsAlive(p)) return;

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"log"
 	"math"
 	"os"
@@ -18,7 +19,7 @@ import (
 
 var (
 	dbPath = "brownies.db"
-	path   = filepath.Join(os.Getenv("LOCALAPPDATA"), "Plutonium2", "storage", "t6", "main", "logs", "games_mp3.log")
+	path   = filepath.Join(os.Getenv("LOCALAPPDATA"), "Plutonium2", "storage", "t6", "mods", "mp_brownies", "logs", "games_mp3.log") // CHANGE ME: Update the log path if necessary
 )
 
 func setupDatabase(logger *log.Logger) (*sql.DB, *database.Bank, error) {
@@ -27,7 +28,8 @@ func setupDatabase(logger *log.Logger) (*sql.DB, *database.Bank, error) {
 		logger.Fatalf("Failed to open database: %v", err)
 	}
 
-	bdb := database.NewBank(math.MaxInt64, db, logger)
+	// Initialize the bank with a balance close to MaxInt64 to prevent overflow
+	bdb := database.NewBank((math.MaxInt64 - 9223372003), db, logger)
 	if bdb == nil {
 		logger.Fatalf("Failed to initialize bank database")
 	}
@@ -48,6 +50,7 @@ func setupDatabase(logger *log.Logger) (*sql.DB, *database.Bank, error) {
 	if err := database.EnsureShop(db); err != nil {
 		logger.Fatalf("Failed to ensure shop table: %v", err)
 	}
+
 	if err := database.SeedShop(db); err != nil {
 		logger.Printf("Shop seeding warning: %v", err)
 	}
@@ -61,23 +64,32 @@ func setupRCON(ip, port, password string, logger *log.Logger) (*rcon.RCONClient,
 		return nil, err
 	}
 
-	for {
-		logger.Println("Attempting to detect Brownies mod on the server")
+	const maxAttempts = 5
+
+	for i := 1; i <= maxAttempts; i++ {
+		logger.Printf("Attempt %d/%d: Attempting to detect Brownies mod on the server\n", i, maxAttempts)
+
 		rc.SetDvar("brwns_enabled", "1")
 		rc.SetDvar("brwns_exec_in", "onstart")
 
 		d, err := rc.GetDvar("brwns_exec_out")
-		if err != nil || d[22:][:7] != "success" {
-			logger.Println("brownies mod not detected on the server")
+		if err != nil {
+			logger.Println("Error reading brwns_exec_out:", err)
 			time.Sleep(1 * time.Second)
 			continue
-		} else if d[22:][:7] == "success" {
-			break
 		}
+
+		if len(d) >= 29 && d[22:29] == "success" {
+			logger.Println("Brownies mod detected on the server")
+			return rc, nil
+		}
+
+		logger.Println("Brownies mod not detected")
+		time.Sleep(750 * time.Millisecond)
 	}
 
-	logger.Println("Brownies mod detected on the server")
-	return rc, nil
+	logger.Fatal("Brownies mod not detected after 5 attempts")
+	return nil, fmt.Errorf("brownies mod not detected")
 }
 
 func main() {

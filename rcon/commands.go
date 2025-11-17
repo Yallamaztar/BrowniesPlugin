@@ -476,3 +476,13 @@ func (rc *RCONClient) GetStatus() (*ServerStatusInfo, error) {
 
 	return info, nil
 }
+
+func (rc *RCONClient) MapRotate() error {
+	_, err := rc.SendCommand("map_rotate", nil)
+	return err
+}
+
+func (rc *RCONClient) FastRestart() error {
+	_, err := rc.SendCommand("fast_restart", nil)
+	return err
+}

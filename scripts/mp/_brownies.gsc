@@ -9,4 +9,3 @@ init() {
     scripts\mp\_brownies_cmds::registerAllCommands();
     level thread scripts\mp\_brownies_core::commandListenerLoop();
 }
-

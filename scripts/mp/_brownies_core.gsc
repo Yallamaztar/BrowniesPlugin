@@ -4,16 +4,14 @@ setDvarIfUnitialized( d, v ) {
     }
 }
 
-RegisterCommand(name, alias, handler, minArgs) {
+RegisterCommand(name, handler) {
     if (!isDefined(level.brwns_cmds)) {
         level.brwns_cmds = [];
     }
 
     entry = spawnstruct();
     entry.name = toLower(name);
-    entry.alias = toLower(alias);
     entry.handler = handler;
-    entry.minArgs = minArgs;
     level.brwns_cmds[level.brwns_cmds.size] = entry;
 }
 
@@ -25,7 +23,7 @@ findRegisteredCommand(name) {
     n = toLower(name);
     for ( i = 0; i < level.brwns_cmds.size; i++ ) {
         e = level.brwns_cmds[i];
-        if (isDefined(e) && (e.name == n || (isDefined(e.alias) && e.alias == n))) {
+        if (isDefined(e) && e.name == n) {
             return e;
         }
     }
@@ -50,10 +48,6 @@ dispatchCommand(cmd) {
 
     def = findRegisteredCommand(cname);
     if (!isDefined(def)) {
-        return;
-    }
-
-    if ( isDefined(def.minArgs) && args.size < def.minArgs ) {
         return;
     }
 

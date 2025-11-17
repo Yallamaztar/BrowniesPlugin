@@ -37,7 +37,7 @@ func (cr *commandRegister) findPlayer(partialName string) *playerInfo {
 }
 
 func (cr *commandRegister) RegisterCommands(db *sql.DB, bank *database.Bank, rc *rcon.RCONClient) {
-	RegisterOwnerCommands(cr)
+	RegisterOwnerCommands(cr, bank)
 	RegisterAdminCommands(cr, bank)
 	RegisterClientCommands(cr, bank)
 	RegisterShopCommands(cr, bank)

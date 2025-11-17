@@ -6,6 +6,8 @@ import (
 	"log"
 	"math"
 	"sync"
+
+	"github.com/Yallamaztar/BrowniesGambling/helpers"
 )
 
 type Bank struct {
@@ -130,9 +132,10 @@ func (b *Bank) TransferFromWallet(w *Wallet, amount int64) {
 		return
 	}
 
+	// Debit wallet only if it has enough balance (race-safe)
 	res, err := tx.Exec(
-		"UPDATE wallets SET balance = balance - ? WHERE xuid = ?",
-		amount, w.xuid,
+		"UPDATE wallets SET balance = balance - ? WHERE xuid = ? AND balance >= ?",
+		amount, w.xuid, amount,
 	)
 	if err != nil {
 		_ = tx.Rollback()
@@ -142,6 +145,31 @@ func (b *Bank) TransferFromWallet(w *Wallet, amount int64) {
 		_ = tx.Rollback()
 		return
 	}
+
+	var current int64
+	if err := tx.QueryRow("SELECT total FROM bank ORDER BY rowid LIMIT 1").Scan(&current); err != nil {
+		_ = tx.Rollback()
+		return
+	}
+	if current > math.MaxInt64-amount {
+		_ = tx.Rollback()
+		b.logger.Printf("Tried to transfer $%s from wallet %s (limit reached)", helpers.FormatMoney(amount), w.player)
+		return
+	}
+
+	res, err = tx.Exec(
+		"UPDATE bank SET total = total + ? WHERE rowid = (SELECT rowid FROM bank ORDER BY rowid LIMIT 1)",
+		amount,
+	)
+	if err != nil {
+		_ = tx.Rollback()
+		return
+	}
+	if rows, _ := res.RowsAffected(); rows != 1 {
+		_ = tx.Rollback()
+		return
+	}
+
 	if err := tx.Commit(); err != nil {
 		_ = tx.Rollback()
 		return
@@ -150,37 +178,9 @@ func (b *Bank) TransferFromWallet(w *Wallet, amount int64) {
 	w.mu.Lock()
 	w.balance -= amount
 	w.mu.Unlock()
+	b.mu.Lock()
+	b.balance += amount
+	b.mu.Unlock()
 
-	credited := false
-	ctx2 := context.Background()
-	tx2, err := b.db.BeginTx(ctx2, nil)
-	if err == nil {
-		limit := math.MaxInt64 - amount
-		res, err = tx2.Exec(
-			"UPDATE bank SET total = total + ? WHERE rowid = (SELECT rowid FROM bank ORDER BY rowid LIMIT 1) AND total <= ?",
-			amount, limit,
-		)
-		if err == nil {
-			if rows, _ := res.RowsAffected(); rows == 1 {
-				if err := tx2.Commit(); err == nil {
-					credited = true
-				} else {
-					_ = tx2.Rollback()
-				}
-			} else {
-				_ = tx2.Rollback()
-			}
-		} else {
-			_ = tx2.Rollback()
-		}
-	}
-
-	if credited {
-		b.mu.Lock()
-		b.balance += amount
-		b.mu.Unlock()
-		b.logger.Printf("Transferred $%d from wallet %s to bank", amount, w.player)
-	} else {
-		b.logger.Printf("Tried to transfer $%d from wallet %s (limit reached)", amount, w.player)
-	}
+	b.logger.Printf("Transferred $%s from wallet %s to bank", helpers.FormatMoney(amount), w.player)
 }

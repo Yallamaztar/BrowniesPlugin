@@ -2,11 +2,36 @@ package commands
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/Yallamaztar/BrowniesGambling/database"
+	"github.com/Yallamaztar/BrowniesGambling/helpers"
 )
 
-func RegisterOwnerCommands(cr *commandRegister) {
+func RegisterOwnerCommands(cr *commandRegister, bank *database.Bank) {
+	cr.RegisterCommand("printmoney", "print", func(clientNum int, player, xuid string, args []string) {
+		owner, err := database.IsOwner(cr.db, xuid)
+		if err != nil || !owner {
+			cr.rcon.Tell(clientNum, "You dont have permission to use this command")
+			return
+		}
+
+		if len(args) < 1 {
+			cr.rcon.Tell(clientNum, "Usage: ^5!printmoney ^7<amount>")
+			return
+		}
+
+		amount, err := strconv.ParseInt(args[0], 10, 64)
+		if err != nil || amount <= 0 {
+			cr.rcon.Tell(clientNum, "Invalid amount")
+			return
+		}
+
+		bank.TransferToWallet(database.GetWallet(player, xuid, cr.db), amount)
+		cr.rcon.Tell(clientNum, fmt.Sprintf("Printed ^5$%s ^7to your wallet", helpers.FormatMoney(amount)))
+		cr.logger.Printf("%s printed $%d to their wallet", player, amount)
+	})
+
 	cr.RegisterCommand("addowner", "add", func(clientNum int, player, xuid string, args []string) {
 		owner, err := database.IsOwner(cr.db, xuid)
 		if err != nil || !owner {

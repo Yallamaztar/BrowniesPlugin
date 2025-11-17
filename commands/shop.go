@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/Yallamaztar/BrowniesGambling/database"
+	"github.com/Yallamaztar/BrowniesGambling/helpers"
 )
 
 func RegisterShopCommands(cr *commandRegister, bank *database.Bank) {
@@ -29,7 +30,7 @@ func RegisterShopCommands(cr *commandRegister, bank *database.Bank) {
 		}
 		cr.rcon.Tell(clientNum, "== ^5Shop Items ^7==")
 		for _, it := range items {
-			cr.rcon.Tell(clientNum, fmt.Sprintf("[^5$%d^7] ^5%s - ^7%s", it.Price, it.Name, it.Description))
+			cr.rcon.Tell(clientNum, fmt.Sprintf("[^5$%s^7] ^5%s - ^7%s", helpers.FormatMoney(it.Price), it.Name, it.Description))
 		}
 		cr.rcon.Tell(clientNum, "^7Buy with ^5!buy <item|alias> ^7<player (optional)>")
 	})
@@ -59,14 +60,20 @@ func RegisterShopCommands(cr *commandRegister, bank *database.Bank) {
 			return
 		}
 		bank.TransferFromWallet(wlt, it.Price)
-		cr.rcon.Tell(clientNum, fmt.Sprintf("Purchased ^5%s ^7for ^5$%d", it.Name, it.Price))
+		cr.rcon.Tell(clientNum, fmt.Sprintf("Purchased ^5%s ^7for ^5$%s", it.Name, helpers.FormatMoney(it.Price)))
 		if it.Command != "" {
 			target := player
 			if len(args) >= 2 {
-				target = cr.findPlayer(args[1]).Name
+				if t := cr.findPlayer(args[1]); t != nil {
+					target = t.Name
+				} else {
+					cr.rcon.Tell(clientNum, "Target player not found")
+					return
+				}
 			}
 			cmd := strings.ReplaceAll(it.Command, "%PLAYER%", target)
-			cr.rcon.SetDvar("brwns_exec", cmd)
+			cr.rcon.SetDvar("brwns_enabled", "1")
+			cr.rcon.SetDvar("brwns_exec_in", cmd)
 		}
 	})
 }
