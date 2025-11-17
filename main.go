@@ -55,6 +55,10 @@ func setupDatabase(logger *log.Logger) (*sql.DB, *database.Bank, error) {
 		logger.Printf("Shop seeding warning: %v", err)
 	}
 
+	if err := database.EnsureSettings(db); err != nil {
+		logger.Fatalf("Failed to ensure settings table: %v", err)
+	}
+
 	return db, bdb, nil
 }
 

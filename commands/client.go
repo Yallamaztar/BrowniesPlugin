@@ -133,6 +133,11 @@ func RegisterClientCommands(cr *commandRegister, bank *database.Bank) {
 	})
 
 	cr.RegisterCommand("gamble", "g", func(clientNum int, player, xuid string, args []string) {
+		if !database.IsGamblingEnabled(cr.db) {
+			cr.rcon.Tell(clientNum, "Gambling is currently ^1disabled")
+			return
+		}
+
 		if len(args) == 0 {
 			cr.rcon.Tell(clientNum, "Usage: !gamble <amount>")
 			return
@@ -161,6 +166,11 @@ func RegisterClientCommands(cr *commandRegister, bank *database.Bank) {
 				return
 			}
 			bet = amt
+		}
+
+		if max := database.GetMaxBet(cr.db); max > 0 && bet > max {
+			cr.rcon.Tell(clientNum, fmt.Sprintf("Max bet is ^5$%s^7", helpers.FormatMoney(max)))
+			return
 		}
 
 		if bet > balance {

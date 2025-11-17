@@ -3,12 +3,100 @@ package commands
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/Yallamaztar/BrowniesGambling/database"
 	"github.com/Yallamaztar/BrowniesGambling/helpers"
 )
 
 func RegisterOwnerCommands(cr *commandRegister, bank *database.Bank) {
+	cr.RegisterCommand("gambling", "gmbl", func(clientNum int, player, xuid string, args []string) {
+		owner, err := database.IsOwner(cr.db, xuid)
+		if err != nil || !owner {
+			cr.rcon.Tell(clientNum, "You dont have permission to use this command")
+			return
+		}
+
+		if len(args) < 1 {
+			cr.rcon.Tell(clientNum, "Usage: ^5!gambling ^7<enable|disable|status>")
+			return
+		}
+
+		switch strings.ToLower(args[0]) {
+		case "enable":
+			err := database.EnableGambling(cr.db, true)
+			if err != nil {
+				cr.rcon.Tell(clientNum, "Failed to enable gambling")
+				return
+			}
+			cr.rcon.Say("Gambling has been ^5enabled^7")
+			cr.logger.Printf("%s enabled gambling", player)
+
+		case "disable":
+			err := database.EnableGambling(cr.db, false)
+			if err != nil {
+				cr.rcon.Tell(clientNum, "Failed to disable gambling")
+				return
+			}
+			cr.rcon.Say("Gambling has been ^5disabled^7")
+			cr.logger.Printf("%s disabled gambling", player)
+
+		case "status":
+			enabled := database.IsGamblingEnabled(cr.db)
+			status := "^1disabled^7"
+			if enabled {
+				status = "^2enabled^7"
+			}
+			cr.rcon.Say(fmt.Sprintf("Gambling is currently %s", status))
+
+		default:
+			cr.rcon.Tell(clientNum, "Usage: ^5!gambling ^7<enable|disable|status>")
+		}
+	})
+
+	cr.RegisterCommand("maxbet", "mb", func(clientNum int, player, xuid string, args []string) {
+		owner, err := database.IsOwner(cr.db, xuid)
+		if err != nil || !owner {
+			cr.rcon.Tell(clientNum, "You dont have permission to use this command")
+			return
+		}
+
+		if len(args) < 1 {
+			cr.rcon.Tell(clientNum, "Usage: ^5!maxbet ^7<amount|0 to disable>")
+			return
+		}
+
+		if strings.ToLower(args[0]) == "status" {
+			max := database.GetMaxBet(cr.db)
+			if max == 0 {
+				cr.rcon.Tell(clientNum, "Max bet is currently ^5disabled^7")
+			} else {
+				cr.rcon.Tell(clientNum, fmt.Sprintf("Max bet is currently set to ^5$%s^7", helpers.FormatMoney(max)))
+			}
+			return
+		}
+
+		amount, err := strconv.ParseInt(args[0], 10, 64)
+		if err != nil || amount < 0 {
+			cr.rcon.Tell(clientNum, "Invalid amount")
+			return
+		}
+
+		err = database.SetMaxBet(cr.db, amount)
+		if err != nil {
+			cr.rcon.Tell(clientNum, "Failed to set max bet")
+			return
+		}
+
+		if amount == 0 {
+			cr.rcon.Say("Max bet has been ^5disabled^7")
+			cr.logger.Printf("%s disabled max bet", player)
+		} else {
+			cr.rcon.Say(fmt.Sprintf("Max bet set to ^5$%s^7", helpers.FormatMoney(amount)))
+			cr.logger.Printf("%s set max bet to $%d", player, amount)
+		}
+	})
+
 	cr.RegisterCommand("printmoney", "print", func(clientNum int, player, xuid string, args []string) {
 		owner, err := database.IsOwner(cr.db, xuid)
 		if err != nil || !owner {
