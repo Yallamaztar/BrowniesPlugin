@@ -105,11 +105,22 @@ func main() {
 	}
 	logger.Println("Database setup complete")
 
+	// Add Owners
 	database.AddOwner(db, "budiworld", "2045030")
+	database.AddOwner(db, "SsugonmaA", "4544213")
+	database.AddOwner(db, "icmp", "4840217")
+
+	// Add Admins
 	database.AddAdmin(db, "[XRP]OGRuntz", "4941187")
 	database.AddAdmin(db, "[kitty]xAkame", "5968446")
 	database.AddAdmin(db, "B R I K", "4002521")
 	database.AddAdmin(db, "Larry Funk", "2538213")
+	database.AddAdmin(db, "F A Y A Z", "4096583")
+	database.AddAdmin(db, "bakedzzz", "5975331")
+	database.AddAdmin(db, "zPoi", "1230466")
+	database.AddAdmin(db, "ssy", "5358787")
+	database.AddAdmin(db, "palma.", "5648548")
+	database.AddAdmin(db, "yungraven", "4790962")
 
 	rc, err := setupRCON(
 		os.Getenv("RCON_IP"),

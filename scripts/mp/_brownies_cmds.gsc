@@ -1,6 +1,6 @@
 registerAllCommands() {
     // server command to verify that the script is loaded
-    scripts\mp\_brownies_core::RegisterCommand("onstart", "onstart", ::onStart, 0);
+    scripts\mp\_brownies_core::RegisterCommand("onstart", ::onStart);
 
     // rcon commands
     scripts\mp\_brownies_core::RegisterCommand("killplayer",  ::impl_killplayer);
@@ -11,8 +11,9 @@ registerAllCommands() {
     scripts\mp\_brownies_core::RegisterCommand("freeze",      ::impl_freezeplayer);
     scripts\mp\_brownies_core::RegisterCommand("slap",        ::impl_slapplayer);
     scripts\mp\_brownies_core::RegisterCommand("loadout",     ::impl_loadout);
-    // scripts\mp\_brownies_core::RegisterCommand("teleport", ::impl_teleport);
-    // scripts\mp\_brownies_core::RegisterCommand("setspeed", ::impl_setSpeed);
+    scripts\mp\_brownies_core::RegisterCommand("teleport",    ::impl_teleport);
+    scripts\mp\_brownies_core::RegisterCommand("setspeed",    ::impl_setspeed);
+    scripts\mp\_brownies_core::RegisterCommand("setgravity",  ::impl_setgravity);
     // scripts\mp\_brownies_core::RegisterCommand("giveweapon", ::impl_giveWeapon);
 }
 
@@ -55,26 +56,14 @@ impl_hideplayer(args) {
 }
 
 impl_teleport(args) {
-    if (args.size == 2) {
-        p = scripts\mp\_brownies_core::findPlayerByName(args[0]);
-        t = scripts\mp\_brownies_core::findPlayerByName(args[1]);
+    if (args.size < 2) return; 
+    p = scripts\mp\_brownies_core::findPlayerByName(args[0]);
+    t = scripts\mp\_brownies_core::findPlayerByName(args[1]);
     
-        if (!isDefined(p) || !isDefined(t) || !IsAlive(p) || !IsAlive(t)) {
-            return;
-        }
-        p SetOrigin(t.origin);
-        
-    } else if (args.size >= 4) {
-        x = int(args[1]);
-        y = int(args[2]);
-        z = int(args[3]);
-
-        p = scripts\mp\_brownies_core::findPlayerByName(args[0]);
-        if (!isDefined(p) || !IsAlive(p)) {
-            return;
-        }
-        p SetOrigin( (x, y, z) );
+    if (!isDefined(p) || !isDefined(t) || !IsAlive(p) || !IsAlive(t)) {
+        return;
     }
+    p SetOrigin(t.origin);
 }
 
 impl_setspectator(args) {
@@ -171,4 +160,13 @@ impl_loadout(args) {
         p GiveWeapon("dsr50_mp", 0, randomIntRange(1, 45));
         p SwitchToWeapon("dsr50_mp");
     }
+}
+
+impl_setgravity(args) {
+    if (args.size < 2) return;
+    p = scripts\mp\_brownies_core::findPlayerByName(args[0]);
+    if (!isDefined(p) || !IsAlive(p)) return;
+
+    gravity = float(args[1]);
+    p SetClientDvar("bg_gravity", gravity);
 }
