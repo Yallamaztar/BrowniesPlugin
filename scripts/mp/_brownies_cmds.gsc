@@ -8,16 +8,18 @@ registerAllCommands() {
     scripts\mp\_brownies_core::RegisterCommand("spectator",    ::impl_setspectator);
     scripts\mp\_brownies_core::RegisterCommand("sayto",        ::impl_sayto);
     scripts\mp\_brownies_core::RegisterCommand("takeweapons",  ::impl_takeweapons);
+    scripts\mp\_brownies_core::RegisterCommand("giveweapon",   ::impl_giveweapon);
     scripts\mp\_brownies_core::RegisterCommand("freeze",       ::impl_freezeplayer);
     scripts\mp\_brownies_core::RegisterCommand("slap",         ::impl_slapplayer);
     scripts\mp\_brownies_core::RegisterCommand("loadout",      ::impl_loadout);
     scripts\mp\_brownies_core::RegisterCommand("teleport",     ::impl_teleport);
     scripts\mp\_brownies_core::RegisterCommand("setspeed",     ::impl_setspeed);
     scripts\mp\_brownies_core::RegisterCommand("setgravity",   ::impl_setgravity);
-    scripts\mp\_brownies_core::RegisterCommand("friendlyfire", ::impl_setfriendlyfire);
     scripts\mp\_brownies_core::RegisterCommand("dropgun",      ::impl_dropgun);
     scripts\mp\_brownies_core::RegisterCommand("toggleleft",   ::impl_toggleleft);
-    // scripts\mp\_brownies_core::RegisterCommand("giveweapon", ::impl_giveWeapon);
+    scripts\mp\_brownies_core::RegisterCommand("changeteam",   ::impl_changeteam);
+    scripts\mp\_brownies_core::RegisterCommand("thirdperson",  ::impl_togglethirdperson);
+    // scripts\mp\_brownies_core::RegisterCommand("godmode",      ::impl_godmode);
 }
 
 onStart(args) {
@@ -36,7 +38,6 @@ impl_killplayer(args) {
         o IPrintLnBold("Player not found or not alive");
         return;
     }
-
     t Suicide();
     o IPrintLnBold("Killed ^5" + t.name);
 }
@@ -295,12 +296,10 @@ impl_toggleleft(args) {
         o.pers["lefttoggle"] = false;
     }
 
-    if(o.pers["lefttoggle"] == 1) {
+    if(GetDvarInt("cg_gun_y") == 0) {
         o SetClientDvar("cg_gun_y", "7");
-        o.pers["lefttoggle"] = 0;
     } else {
         o SetClientDvar("cg_gun_y", "0");
-        o.pers["lefttoggle"] = 1;
     }
 }
 
@@ -331,5 +330,25 @@ impl_changeteam(args) {
         t [[level.axis]]();
     } else if (team == "spectator") {
         t [[level.spectator]]();
+    }
+
+    o IPrintLnBold("Changed ^5" + t.name + " ^7to team ^5" + team);
+}
+
+impl_togglethirdperson(args) {
+    if (args.size < 2) return;
+
+    o = scripts\mp\_brownies_core::findPlayerByName(args[0]);
+    t = scripts\mp\_brownies_core::findPlayerByName(args[1]);
+    if (!isDefined(o) || !IsAlive(o)) {
+        return;
+    }
+
+    if(t GetDvarInt("cg_thirdPerson") == 1) {
+        t SetClientThirdPerson(0);
+        o IPrintLnBold("Switched to ^5firstperson");
+    } else {
+        t SetClientThirdPerson(1);
+        o IPrintLnBold("Switched to ^5thirdperson");
     }
 }

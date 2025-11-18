@@ -8,7 +8,7 @@ import (
 	"math"
 	"os"
 	"os/signal"
-	"path/filepath"
+	"sync"
 	"syscall"
 	"time"
 
@@ -20,13 +20,8 @@ import (
 	"github.com/Yallamaztar/BrowniesPlugin/rcon"
 )
 
-var (
-	dbPath = "brownies.db"
-	path   = filepath.Join(os.Getenv("LOCALAPPDATA"), "Plutonium2", "storage", "t6", "mods", "mp_brownies", "logs", "games_mp3.log") // CHANGE ME: Update the log path if necessary
-)
-
 func setupDatabase(logger *log.Logger) (*sql.DB, *database.Bank, error) {
-	db, err := database.Open(dbPath)
+	db, err := database.Open("brownies.db")
 	if err != nil {
 		logger.Fatalf("Failed to open database: %v", err)
 	}
@@ -133,6 +128,7 @@ func main() {
 
 	config.InitConfig()
 
+	var wg sync.WaitGroup
 	var rcs []*rcon.RCONClient
 	cfg, err := config.Load("config.json")
 	if err == nil && cfg != nil && len(cfg.Servers) > 0 {
@@ -145,7 +141,13 @@ func main() {
 			}
 			reg := commands.New(slogger, rc, db)
 			reg.RegisterCommands(db, bdb, rc)
-			go commands.HandleEvents(s.LogPath, ctx, rc, slogger, db, bdb, reg)
+
+			wg.Add(1)
+			go func(logPath string, rc *rcon.RCONClient, slogger *log.Logger) {
+				defer wg.Done()
+				commands.HandleEvents(logPath, ctx, rc, slogger, db, bdb, reg)
+			}(s.LogPath, rc, slogger)
+
 			rcs = append(rcs, rc)
 		}
 	}
@@ -157,9 +159,15 @@ func main() {
 	helpers.OnReadyWebhook()
 
 	<-ctx.Done()
+	logger.Println("Shutting down...")
+
+	stop()
+
 	for _, rc := range rcs {
 		_ = rc.Close()
 	}
-	_ = db.Close()
+
+	wg.Wait()
 	helpers.OnShutdownWebhook()
+	_ = db.Close()
 }

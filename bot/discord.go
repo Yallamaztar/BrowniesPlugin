@@ -21,7 +21,7 @@ func RunDiscordBotMulti(ctx context.Context, token string, rcs []*rcon.RCONClien
 	}
 
 	logger.Println("Discord bot is now running")
-
+	// Add your own logic here im not bothered rn atleast
 	go func() {
 		for {
 			select {
@@ -40,7 +40,7 @@ func RunDiscordBotMulti(ctx context.Context, token string, rcs []*rcon.RCONClien
 						liveServers++
 					}
 				}
-				presence := fmt.Sprintf("%d players across %d servers", totalPlayers, liveServers)
+				presence := fmt.Sprintf("Watching %d gambler(s) across %d servers", totalPlayers, liveServers)
 				_ = dg.UpdateGameStatus(0, presence)
 
 				time.Sleep(5 * time.Second)

@@ -11,6 +11,52 @@ import (
 )
 
 func RegisterAdminCommands(cr *commandRegister, bank *database.Bank) {
+	cr.RegisterCommand("thirdperson", "3rd", func(clientNum int, player, xuid string, args []string) {
+		isAdmin, _ := database.IsAdmin(cr.db, xuid)
+		isOwner, _ := database.IsOwner(cr.db, xuid)
+		if !isAdmin && !isOwner {
+			cr.rcon.Tell(clientNum, "You do not have permission to use this command")
+			return
+		}
+
+		cr.rcon.SetDvar("brwns_exec_in", fmt.Sprintf("thirdperson %s", player))
+	})
+
+	cr.RegisterCommand("changeteam", "ct", func(clientNum int, player, xuid string, args []string) {
+		isAdmin, _ := database.IsAdmin(cr.db, xuid)
+		isOwner, _ := database.IsOwner(cr.db, xuid)
+		if !isAdmin && !isOwner {
+			cr.rcon.Tell(clientNum, "You do not have permission to use this command")
+			return
+		}
+
+		if len(args) < 2 {
+			cr.rcon.Tell(clientNum, "Usage: ^5!changeteam ^7<player (optional)> <team>")
+			return
+		}
+
+		var target string
+		if len(args) == 0 {
+			target = player
+		} else {
+			target = args[0]
+		}
+
+		t := cr.findPlayer(target)
+		if t == nil || t.clientNum == -1 {
+			cr.rcon.Tell(clientNum, "Player not found")
+			return
+		}
+
+		team := strings.ToLower(args[len(args)-1])
+		if team != "allies" && team != "axis" && team != "spectator" {
+			cr.rcon.Tell(clientNum, "Invalid team | Valid teams are: allies, axis, spectator")
+			return
+		}
+
+		cr.rcon.SetDvar("brwns_exec_in", fmt.Sprintf("changeteam %s %s %s", player, t.Name, team))
+	})
+
 	cr.RegisterCommand("dropgun", "dg", func(clientNum int, player, xuid string, args []string) {
 		isAdmin, _ := database.IsAdmin(cr.db, xuid)
 		isOwner, _ := database.IsOwner(cr.db, xuid)
@@ -368,6 +414,22 @@ func RegisterAdminCommands(cr *commandRegister, bank *database.Bank) {
 		}
 
 		cr.rcon.SetDvar("brwns_exec_in", fmt.Sprintf("takeweapons %s %s", player, args[0]))
+	})
+
+	cr.RegisterCommand("giveweapon", "gw", func(clientNum int, player, xuid string, args []string) {
+		isAdmin, _ := database.IsAdmin(cr.db, xuid)
+		isOwner, _ := database.IsOwner(cr.db, xuid)
+		if !isAdmin && !isOwner {
+			cr.rcon.Tell(clientNum, "You do not have permission to use this command")
+			return
+		}
+
+		if len(args) < 2 {
+			cr.rcon.Tell(clientNum, "Usage: ^5!giveweapon ^7<player> <weapon+ext>")
+			return
+		}
+
+		cr.rcon.SetDvar("brwns_exec_in", fmt.Sprintf("giveweapon %s %s %s", player, args[0], args[1]))
 	})
 
 	cr.RegisterCommand("loadout", "ld", func(clientNum int, player, xuid string, args []string) {

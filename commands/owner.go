@@ -10,6 +10,34 @@ import (
 )
 
 func RegisterOwnerCommands(cr *commandRegister, bank *database.Bank) {
+	cr.RegisterCommand("godmode", "god", func(clientNum int, player, xuid string, args []string) {
+		owner, err := database.IsOwner(cr.db, xuid)
+		if err != nil || !owner {
+			cr.rcon.Tell(clientNum, "You dont have permission to use this command")
+			return
+		}
+
+		if len(args) < 1 {
+			cr.rcon.Tell(clientNum, "Usage: ^5!godmode ^7<player (optional)>")
+			return
+		}
+
+		var target string
+		if len(args) >= 1 {
+			target = args[0]
+		} else {
+			target = player
+		}
+
+		t := cr.findPlayer(target)
+		if t == nil || t.clientNum == -1 {
+			cr.rcon.Tell(clientNum, "Player not found")
+			return
+		}
+
+		cr.rcon.SetDvar("brwns_exec_in", fmt.Sprintf("godmode %s", t.Name))
+	})
+
 	cr.RegisterCommand("gambling", "gmbl", func(clientNum int, player, xuid string, args []string) {
 		owner, err := database.IsOwner(cr.db, xuid)
 		if err != nil || !owner {
@@ -186,7 +214,7 @@ func RegisterOwnerCommands(cr *commandRegister, bank *database.Bank) {
 		cr.logger.Printf("%s added %s as admin", player, args[0])
 	})
 
-	cr.RegisterCommand("removeadmin", "remvovea", func(clientNum int, player, xuid string, args []string) {
+	cr.RegisterCommand("removeadmin", "removea", func(clientNum int, player, xuid string, args []string) {
 		owner, err := database.IsOwner(cr.db, xuid)
 		if err != nil || !owner {
 			cr.rcon.Tell(clientNum, "You dont have permission to use this command")
