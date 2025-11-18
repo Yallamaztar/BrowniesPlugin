@@ -2,9 +2,10 @@ package commands
 
 import (
 	"database/sql"
+	"strings"
 
-	"github.com/Yallamaztar/BrowniesGambling/database"
-	"github.com/Yallamaztar/BrowniesGambling/rcon"
+	"github.com/Yallamaztar/BrowniesPlugin/database"
+	"github.com/Yallamaztar/BrowniesPlugin/rcon"
 )
 
 type playerInfo struct {
@@ -13,25 +14,75 @@ type playerInfo struct {
 	clientNum int
 }
 
-func (cr *commandRegister) findPlayer(partialName string) *playerInfo {
-	var playerName, xuid string
-	query := "SELECT player, xuid FROM wallets WHERE player LIKE ? ORDER BY created_at DESC LIMIT 1"
-	err := cr.db.QueryRow(query, "%"+partialName+"%").Scan(&playerName, &xuid)
+func (cr *commandRegister) findPlayer(partial string) *playerInfo {
+	partial = strings.ToLower(strings.TrimSpace(partial))
+
+	status, err := cr.rcon.Status()
 	if err != nil {
 		return nil
 	}
 
-	if cn, ok := cr.GetClientNum(xuid); ok {
+	var (
+		exactMatch   *playerInfo
+		partialMatch *playerInfo
+	)
+
+	for _, p := range status.Players {
+		if strings.ToLower(p.Name) == partial {
+			exactMatch = &playerInfo{
+				Name:      p.Name,
+				XUID:      p.GUID,
+				clientNum: p.ClientNum,
+			}
+			break
+		}
+
+		if strings.Contains(strings.ToLower(p.Name), partial) && partialMatch == nil {
+			partialMatch = &playerInfo{
+				Name:      p.Name,
+				XUID:      p.GUID,
+				clientNum: p.ClientNum,
+			}
+		}
+	}
+
+	if exactMatch != nil {
+		return exactMatch
+	}
+
+	if partialMatch != nil {
+		return partialMatch
+	}
+
+	var (
+		dbName string
+		dbXUID string
+	)
+
+	query := `
+		SELECT player, xuid 
+		FROM wallets 
+		WHERE LOWER(player) LIKE ? 
+		ORDER BY created_at DESC 
+		LIMIT 1
+	`
+
+	err = cr.db.QueryRow(query, "%"+partial+"%").Scan(&dbName, &dbXUID)
+	if err != nil {
+		return nil
+	}
+
+	if cn, ok := cr.GetClientNum(dbXUID); ok {
 		return &playerInfo{
-			Name:      playerName,
-			XUID:      xuid,
+			Name:      dbName,
+			XUID:      dbXUID,
 			clientNum: cn,
 		}
 	}
 
 	return &playerInfo{
-		Name:      playerName,
-		XUID:      xuid,
+		Name:      dbName,
+		XUID:      dbXUID,
 		clientNum: -1,
 	}
 }

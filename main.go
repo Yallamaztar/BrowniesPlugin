@@ -12,11 +12,12 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/Yallamaztar/BrowniesGambling/bot"
-	"github.com/Yallamaztar/BrowniesGambling/commands"
-	"github.com/Yallamaztar/BrowniesGambling/database"
-	"github.com/Yallamaztar/BrowniesGambling/helpers"
-	"github.com/Yallamaztar/BrowniesGambling/rcon"
+	"github.com/Yallamaztar/BrowniesPlugin/bot"
+	"github.com/Yallamaztar/BrowniesPlugin/commands"
+	"github.com/Yallamaztar/BrowniesPlugin/config"
+	"github.com/Yallamaztar/BrowniesPlugin/database"
+	"github.com/Yallamaztar/BrowniesPlugin/helpers"
+	"github.com/Yallamaztar/BrowniesPlugin/rcon"
 )
 
 var (
@@ -130,26 +131,35 @@ func main() {
 	database.AddAdmin(db, "palma.", "5648548")
 	database.AddAdmin(db, "yungraven", "4790962")
 
-	rc, err := setupRCON(
-		os.Getenv("RCON_IP"),
-		os.Getenv("RCON_PORT"),
-		os.Getenv("RCON_PASSWORD"),
-		logger,
-	)
+	config.InitConfig()
 
-	if err != nil {
-		logger.Fatalf("RCON setup failed: %v", err)
+	var rcs []*rcon.RCONClient
+	cfg, err := config.Load("config.json")
+	if err == nil && cfg != nil && len(cfg.Servers) > 0 {
+		for _, s := range cfg.Servers {
+			slogger := log.New(os.Stdout, fmt.Sprintf("[%s:%s][Gambling] ", s.IP, s.Port), log.LstdFlags)
+			rc, err := setupRCON(s.IP, s.Port, s.Password, slogger)
+			if err != nil {
+				slogger.Printf("RCON setup failed for %s:%s: %v", s.IP, s.Port, err)
+				continue
+			}
+			reg := commands.New(slogger, rc, db)
+			reg.RegisterCommands(db, bdb, rc)
+			go commands.HandleEvents(s.LogPath, ctx, rc, slogger, db, bdb, reg)
+			rcs = append(rcs, rc)
+		}
 	}
 
-	reg := commands.New(logger, rc, db)
-	reg.RegisterCommands(db, bdb, rc)
+	if token := os.Getenv("BOT_TOKEN"); token != "" && len(rcs) > 0 {
+		go bot.RunDiscordBotMulti(ctx, token, rcs, logger)
+	}
 
-	go commands.HandleEvents(path, ctx, rc, logger, db, bdb, reg)
-	go bot.RunDiscordBot(ctx, os.Getenv("BOT_TOKEN"), rc, logger)
 	helpers.OnReadyWebhook()
 
 	<-ctx.Done()
-	rc.Close()
-	db.Close()
+	for _, rc := range rcs {
+		_ = rc.Close()
+	}
+	_ = db.Close()
 	helpers.OnShutdownWebhook()
 }

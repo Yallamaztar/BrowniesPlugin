@@ -68,7 +68,7 @@ commandListenerLoop() {
             thread dispatchCommand(cmd);
         }
 
-        wait 0.25;
+        wait 0.01;
     }
 }
 

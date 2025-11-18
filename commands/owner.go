@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Yallamaztar/BrowniesGambling/database"
-	"github.com/Yallamaztar/BrowniesGambling/helpers"
+	"github.com/Yallamaztar/BrowniesPlugin/database"
+	"github.com/Yallamaztar/BrowniesPlugin/helpers"
 )
 
 func RegisterOwnerCommands(cr *commandRegister, bank *database.Bank) {

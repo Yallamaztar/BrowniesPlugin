@@ -6,7 +6,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/Yallamaztar/BrowniesGambling/rcon"
+	"github.com/Yallamaztar/BrowniesPlugin/rcon"
 )
 
 type commandHandler func(clientNum int, player, xuid string, args []string)

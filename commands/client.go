@@ -5,12 +5,99 @@ import (
 	"math/rand/v2"
 	"strconv"
 	"strings"
+	"time"
 
-	"github.com/Yallamaztar/BrowniesGambling/database"
-	"github.com/Yallamaztar/BrowniesGambling/helpers"
+	"github.com/Yallamaztar/BrowniesPlugin/database"
+	"github.com/Yallamaztar/BrowniesPlugin/helpers"
 )
 
+type voteKick struct {
+	TXUID       string
+	TName       string
+	Votes       map[string]bool
+	Required    int
+	Started     bool
+	StartedBy   string
+	TimerActive bool
+}
+
+var vote voteKick
+
 func RegisterClientCommands(cr *commandRegister, bank *database.Bank) {
+	cr.RegisterCommand("votekick", "vk", func(clientNum int, player, xuid string, args []string) {
+		if len(args) < 1 {
+			cr.rcon.Tell(clientNum, "Usage: ^5!votekick ^7<player>")
+			return
+		}
+
+		t := cr.findPlayer(strings.Join(args, " "))
+		if t == nil || t.clientNum == -1 {
+			cr.rcon.Tell(clientNum, "Player not found")
+			return
+		}
+
+		isAdmin, _ := database.IsAdmin(cr.db, t.XUID)
+		isOwner, _ := database.IsOwner(cr.db, t.XUID)
+		if !isAdmin && !isOwner {
+			cr.rcon.Tell(clientNum, "You do not have permission to votekick this player")
+			return
+		}
+
+		if !vote.Started {
+			status, err := cr.rcon.Status()
+			if err != nil {
+				cr.rcon.Tell(clientNum, "Failed to get server status")
+				return
+			}
+
+			req := len(status.Players)/2 + 1
+
+			vote = voteKick{
+				TXUID:       t.XUID,
+				TName:       t.Name,
+				StartedBy:   player,
+				Votes:       map[string]bool{xuid: true},
+				Required:    req,
+				Started:     true,
+				TimerActive: true,
+			}
+
+			cr.rcon.Say(fmt.Sprintf("Votekick started against ^5%s ^7by ^5%s", t.Name, player))
+			cr.rcon.Say(fmt.Sprintf("Type ^5!votekick %s ^7to vote (^51/%d^7)", t.Name, req))
+
+			go func() {
+				<-time.After(45 * time.Second)
+				if vote.TimerActive {
+					cr.rcon.Say("^7Votekick expired")
+					vote.Started = false
+				}
+			}()
+
+			return
+		}
+
+		if vote.TXUID != t.XUID {
+			cr.rcon.Tell(clientNum, fmt.Sprintf("A vote is already active for ^1%s^7", vote.TName))
+			return
+		}
+
+		if vote.Votes[xuid] {
+			cr.rcon.Tell(clientNum, "You have already voted")
+			return
+		}
+
+		vote.Votes[xuid] = true
+		cur := len(vote.Votes)
+
+		cr.rcon.Say(fmt.Sprintf("Vote received (^5%d/%d^7) for kicking ^1%s", cur, vote.Required, vote.TName))
+
+		if cur >= vote.Required {
+			cr.rcon.Say(fmt.Sprintf("^5%s ^7has been kicked from the server!", vote.TName))
+			cr.rcon.Kick(t.clientNum, "You have been votekicked from the server")
+			vote.Started = false
+		}
+	})
+
 	cr.RegisterCommand("left", "lt", func(clientNum int, player, xuid string, args []string) {
 		cr.rcon.SetDvar("brwns_exec_in", fmt.Sprintf("toggleleft %s", player))
 	})

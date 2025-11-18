@@ -7,8 +7,8 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Yallamaztar/BrowniesGambling/database"
-	"github.com/Yallamaztar/BrowniesGambling/rcon"
+	"github.com/Yallamaztar/BrowniesPlugin/database"
+	"github.com/Yallamaztar/BrowniesPlugin/rcon"
 	"github.com/Yallamaztar/events/events"
 )
 

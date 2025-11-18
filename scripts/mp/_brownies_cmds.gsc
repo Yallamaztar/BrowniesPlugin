@@ -287,11 +287,49 @@ impl_setfriendlyfire(args) {
 
 impl_toggleleft(args) {
     o = scripts\mp\_brownies_core::findPlayerByName(args[0]);
-    if(o.lg == 1) {
+    if (!isDefined(o) || !IsAlive(o)) {
+        return;
+    }
+
+    if (!isDefined(o.pers["lefttoggle"])) {
+        o.pers["lefttoggle"] = false;
+    }
+
+    if(o.pers["lefttoggle"] == 1) {
         o SetClientDvar("cg_gun_y", "7");
-        o.lg = 0;
+        o.pers["lefttoggle"] = 0;
     } else {
         o SetClientDvar("cg_gun_y", "0");
-        o.lg = 1;
+        o.pers["lefttoggle"] = 1;
+    }
+}
+
+impl_changeteam(args) {
+    if (args.size < 3) return;
+
+    o = scripts\mp\_brownies_core::findPlayerByName(args[0]);
+    t = scripts\mp\_brownies_core::findPlayerByName(args[1]);
+
+    if (!isDefined(o) || !isDefined(t)) {
+        return;
+    }
+
+    team = ToLower(args[2]);
+    if (team != "allies" && team != "axis" && team != "spectator") {
+        o IPrintLnBold("Invalid team: allies / axis / spectator");
+        return;
+    }
+
+    if (t.pers["team"] == team) {
+        o IPrintLnBold("^5" + t.name + " ^7is already on team ^5" + team);
+        return;
+    }
+
+    if (team == "allies") {
+        t [[level.allies]]();
+    } else if (team == "axis") {
+        t [[level.axis]]();
+    } else if (team == "spectator") {
+        t [[level.spectator]]();
     }
 }

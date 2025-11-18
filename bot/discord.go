@@ -6,11 +6,11 @@ import (
 	"log"
 	"time"
 
-	"github.com/Yallamaztar/BrowniesGambling/rcon"
+	"github.com/Yallamaztar/BrowniesPlugin/rcon"
 	"github.com/bwmarrin/discordgo"
 )
 
-func RunDiscordBot(ctx context.Context, token string, rc *rcon.RCONClient, logger *log.Logger) error {
+func RunDiscordBotMulti(ctx context.Context, token string, rcs []*rcon.RCONClient, logger *log.Logger) error {
 	dg, err := discordgo.New("Bot " + token)
 	if err != nil {
 		return fmt.Errorf("discord session error: %w", err)
@@ -29,14 +29,19 @@ func RunDiscordBot(ctx context.Context, token string, rc *rcon.RCONClient, logge
 				return
 
 			default:
-				status, err := rc.Status()
-				if err != nil {
-					logger.Println("RCON status error:", err)
-					_ = dg.UpdateGameStatus(0, "RCON Offline")
-				} else {
-					presence := fmt.Sprintf("%d players on %s", len(status.Players), status.Map)
-					_ = dg.UpdateGameStatus(0, presence)
+				totalPlayers := 0
+				liveServers := 0
+				for _, rc := range rcs {
+					if rc == nil {
+						continue
+					}
+					if status, err := rc.Status(); err == nil && status != nil {
+						totalPlayers += len(status.Players)
+						liveServers++
+					}
 				}
+				presence := fmt.Sprintf("%d players across %d servers", totalPlayers, liveServers)
+				_ = dg.UpdateGameStatus(0, presence)
 
 				time.Sleep(5 * time.Second)
 			}
@@ -44,6 +49,6 @@ func RunDiscordBot(ctx context.Context, token string, rc *rcon.RCONClient, logge
 	}()
 
 	<-ctx.Done()
-	logger.Println("Shutting down Discord bot...")
+	logger.Println("Shutting down Discord bot (multi)...")
 	return dg.Close()
 }

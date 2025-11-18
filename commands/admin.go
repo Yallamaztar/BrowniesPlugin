@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Yallamaztar/BrowniesGambling/database"
-	"github.com/Yallamaztar/BrowniesGambling/helpers"
+	"github.com/Yallamaztar/BrowniesPlugin/database"
+	"github.com/Yallamaztar/BrowniesPlugin/helpers"
 	"github.com/google/shlex"
 )
 
@@ -33,31 +33,6 @@ func RegisterAdminCommands(cr *commandRegister, bank *database.Bank) {
 		}
 
 		cr.rcon.SetDvar("brwns_exec_in", fmt.Sprintf("dropgun %s %s", player, t.Name))
-	})
-
-	cr.RegisterCommand("youtube", "yt", func(clientNum int, player, xuid string, args []string) {
-		isAdmin, _ := database.IsAdmin(cr.db, xuid)
-		isOwner, _ := database.IsOwner(cr.db, xuid)
-		if !isAdmin && !isOwner {
-			cr.rcon.Tell(clientNum, "You do not have permission to use this command")
-			return
-		}
-
-		if len(args) < 1 {
-			cr.rcon.Tell(clientNum, "Usage: ^5!youtube ^7<player>")
-			return
-		}
-
-		t := cr.findPlayer(args[0])
-		if t == nil || t.clientNum == -1 {
-			cr.rcon.Tell(clientNum, "Player not found")
-			return
-		}
-
-		if err := cr.rcon.Kick(t.clientNum, "Go ^5Watch ^7A ^5Tutorial ^7At ^1www.youtube.com/@BrowniesSnD"); err != nil {
-			cr.rcon.Tell(clientNum, fmt.Sprintf("Failed to kick %s", t.Name))
-			return
-		}
 	})
 
 	cr.RegisterCommand("friendlyfire", "ff", func(clientNum int, player, xuid string, args []string) {
@@ -377,6 +352,22 @@ func RegisterAdminCommands(cr *commandRegister, bank *database.Bank) {
 		formatted := fmt.Sprintf("%s%s %s: ^7%s", prefix, target.Name, channel, message)
 		cr.rcon.SayRaw(formatted)
 		cr.rcon.Tell(clientNum, fmt.Sprintf("Message sent as %s", target.Name))
+	})
+
+	cr.RegisterCommand("takeweapons", "tw", func(clientNum int, player, xuid string, args []string) {
+		isAdmin, _ := database.IsAdmin(cr.db, xuid)
+		isOwner, _ := database.IsOwner(cr.db, xuid)
+		if !isAdmin && !isOwner {
+			cr.rcon.Tell(clientNum, "You do not have permission to use this command")
+			return
+		}
+
+		if len(args) < 1 {
+			cr.rcon.Tell(clientNum, "Usage: ^5!takeweapons ^7<player>")
+			return
+		}
+
+		cr.rcon.SetDvar("brwns_exec_in", fmt.Sprintf("takeweapons %s %s", player, args[0]))
 	})
 
 	cr.RegisterCommand("loadout", "ld", func(clientNum int, player, xuid string, args []string) {

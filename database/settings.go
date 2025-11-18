@@ -3,7 +3,7 @@ package database
 import (
 	"database/sql"
 
-	"github.com/Yallamaztar/BrowniesGambling/helpers"
+	"github.com/Yallamaztar/BrowniesPlugin/helpers"
 )
 
 func EnsureSettings(db *sql.DB) error {

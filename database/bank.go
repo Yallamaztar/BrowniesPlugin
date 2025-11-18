@@ -7,7 +7,7 @@ import (
 	"math"
 	"sync"
 
-	"github.com/Yallamaztar/BrowniesGambling/helpers"
+	"github.com/Yallamaztar/BrowniesPlugin/helpers"
 )
 
 type Bank struct {

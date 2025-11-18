@@ -1,4 +1,4 @@
-module github.com/Yallamaztar/BrowniesGambling
+module github.com/Yallamaztar/BrowniesPlugin
 
 go 1.25.3
 
