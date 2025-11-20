@@ -81,3 +81,13 @@ findPlayerByName(t) {
     }
     return undefined;
 }
+
+findPlayerByClientNum(n) {
+    n = int(n);
+    for ( i = 0; i < level.players.size; i++ ) {
+        p = level.players[i];
+        if ( p getEntityNumber() == n )
+            return p;
+    }
+    return undefined;
+}

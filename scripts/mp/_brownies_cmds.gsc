@@ -17,8 +17,11 @@ registerAllCommands() {
     scripts\mp\_brownies_core::RegisterCommand("setgravity",   ::impl_setgravity);
     scripts\mp\_brownies_core::RegisterCommand("dropgun",      ::impl_dropgun);
     scripts\mp\_brownies_core::RegisterCommand("toggleleft",   ::impl_toggleleft);
-    scripts\mp\_brownies_core::RegisterCommand("changeteam",   ::impl_changeteam);
+    // scripts\mp\_brownies_core::RegisterCommand("changeteam",   ::impl_changeteam);
     scripts\mp\_brownies_core::RegisterCommand("thirdperson",  ::impl_togglethirdperson);
+    scripts\mp\_brownies_core::RegisterCommand("bunnyhop",     ::impl_bunnyhop);
+    scripts\mp\_brownies_core::RegisterCommand("jumpheight",   ::impl_jumpheight);
+    scripts\mp\_brownies_core::RegisterCommand("svcheats",     ::impl_svcheats);
     // scripts\mp\_brownies_core::RegisterCommand("godmode",      ::impl_godmode);
 }
 
@@ -31,8 +34,8 @@ onStart(args) {
 impl_killplayer(args) {
     if (args.size < 2) return;
 
-    o = scripts\mp\_brownies_core::findPlayerByName(args[0]);
-    t = scripts\mp\_brownies_core::findPlayerByName(args[1]);
+    o = scripts\mp\_brownies_core::findPlayerByClientNum(int(args[0]));
+    t = scripts\mp\_brownies_core::findPlayerByClientNum(int(args[1]));
 
     if ( !isDefined(t) && !IsAlive(t) ) {
         o IPrintLnBold("Player not found or not alive");
@@ -45,8 +48,8 @@ impl_killplayer(args) {
 impl_hideplayer(args) {
     if (args.size < 2) return;
 
-    o = scripts\mp\_brownies_core::findPlayerByName(args[0]);
-    t = scripts\mp\_brownies_core::findPlayerByName(args[1]);
+    o = scripts\mp\_brownies_core::findPlayerByClientNum(int(args[0]));
+    t = scripts\mp\_brownies_core::findPlayerByClientNum(int(args[1]));
 
     if (isDefined(t) && IsAlive(t)) {
         if (!isDefined(t.isHidden)) {
@@ -68,11 +71,11 @@ impl_hideplayer(args) {
 impl_teleport(args) {
     if (args.size < 2) return; 
     
-    o = scripts\mp\_brownies_core::findPlayerByName(args[0]);
+    o = scripts\mp\_brownies_core::findPlayerByClientNum(int(args[0]));
 
     if (args.size == 3) {
-        t1 = scripts\mp\_brownies_core::findPlayerByName(args[1]);
-        t2 = scripts\mp\_brownies_core::findPlayerByName(args[2]);
+        t1 = scripts\mp\_brownies_core::findPlayerByClientNum(int(args[1]));
+        t2 = scripts\mp\_brownies_core::findPlayerByClientNum(int(args[2]));
 
         if (!isDefined(t1) || !isDefined(t2) || !IsAlive(t1) || !IsAlive(t2)) {
             o IPrintLnBold("One or both target players not found or not alive");
@@ -84,7 +87,7 @@ impl_teleport(args) {
         return;
     }
 
-    t = scripts\mp\_brownies_core::findPlayerByName(args[1]);  
+    t = scripts\mp\_brownies_core::findPlayerByClientNum(int(args[1]));  
     if (!isDefined(o) || !isDefined(t) || !IsAlive(o) || !IsAlive(t)) {
         return;
     }
@@ -96,8 +99,8 @@ impl_teleport(args) {
 impl_setspectator(args) {
     if (args.size < 2) return;
 
-    o = scripts\mp\_brownies_core::findPlayerByName(args[0]);
-    t = scripts\mp\_brownies_core::findPlayerByName(args[1]);
+    o = scripts\mp\_brownies_core::findPlayerByClientNum(int(args[0]));
+    t = scripts\mp\_brownies_core::findPlayerByClientNum(int(args[1]));
 
     if (!isDefined(t) || t.pers["team"] == "spectator") {
         o IPrintLnBold("Player not found or already in spectator mode");
@@ -111,8 +114,8 @@ impl_setspectator(args) {
 impl_sayto(args) {
     if (args.size < 2) return;
     
-    o = scripts\mp\_brownies_core::findPlayerByName(args[0]);
-    t = scripts\mp\_brownies_core::findPlayerByName(args[1]);
+    o = scripts\mp\_brownies_core::findPlayerByClientNum(int(args[0]));
+    t = scripts\mp\_brownies_core::findPlayerByClientNum(args[1]);
     
     if (!isDefined(t) || !IsAlive(t)) { 
         o IPrintLnBold("Player not found or not alive");
@@ -130,15 +133,15 @@ impl_sayto(args) {
 impl_giveweapon(args) {
     if (args.size < 2) return;
     
-    o = scripts\mp\_brownies_core::findPlayerByName(args[0]);
-    t = scripts\mp\_brownies_core::findPlayerByName(args[1]);
+    o = scripts\mp\_brownies_core::findPlayerByClientNum(int(args[0]));
+    t = scripts\mp\_brownies_core::findPlayerByClientNum(int(args[1]));
     
     if (!isDefined(t) || !IsAlive(t)) { 
         o IPrintLnBold("Player not found or not alive");
         return;
     }
 
-    weapon = args[1];
+    weapon = args[2];
     t GiveWeapon(weapon);
     t SwitchToWeapon(weapon);
 
@@ -148,8 +151,8 @@ impl_giveweapon(args) {
 impl_takeweapons(args) {
     if (args.size < 2) return;
     
-    o = scripts\mp\_brownies_core::findPlayerByName(args[0]);
-    t = scripts\mp\_brownies_core::findPlayerByName(args[1]);
+    o = scripts\mp\_brownies_core::findPlayerByClientNum(int(args[0]));
+    t = scripts\mp\_brownies_core::findPlayerByClientNum(int(args[1]));
     
     if (!isDefined(t) || !IsAlive(t)) { 
         o IPrintLnBold("Player not found or not alive");
@@ -163,8 +166,8 @@ impl_takeweapons(args) {
 impl_freezeplayer(args) {
     if (args.size < 2) return;
     
-    o = scripts\mp\_brownies_core::findPlayerByName(args[0]);
-    t = scripts\mp\_brownies_core::findPlayerByName(args[1]);
+    o = scripts\mp\_brownies_core::findPlayerByClientNum(int(args[0]));
+    t = scripts\mp\_brownies_core::findPlayerByClientNum(int(args[1]));
     
     if (!isDefined(t) || !IsAlive(t)) { 
         o IPrintLnBold("Player not found or not alive");
@@ -186,8 +189,8 @@ impl_freezeplayer(args) {
 impl_setspeed(args) {
     if (args.size < 3) return;
     
-    o = scripts\mp\_brownies_core::findPlayerByName(args[0]);
-    t = scripts\mp\_brownies_core::findPlayerByName(args[1]);
+    o = scripts\mp\_brownies_core::findPlayerByClientNum(int(args[0]));
+    t = scripts\mp\_brownies_core::findPlayerByClientNum(int(args[1]));
     
     if (!isDefined(t) || !IsAlive(t)) { 
         o IPrintLnBold("Player not found or not alive");
@@ -203,8 +206,8 @@ impl_setspeed(args) {
 impl_slapplayer(args) {
     if (args.size < 2) return;
     
-    o = scripts\mp\_brownies_core::findPlayerByName(args[0]);
-    t = scripts\mp\_brownies_core::findPlayerByName(args[1]);
+    o = scripts\mp\_brownies_core::findPlayerByClientNum(int(args[0]));
+    t = scripts\mp\_brownies_core::findPlayerByClientNum(int(args[1]));
     
     if (!isDefined(t) || !IsAlive(t)) { 
         o IPrintLnBold("Player not found or not alive");
@@ -220,8 +223,8 @@ impl_slapplayer(args) {
 impl_loadout(args) {
     if (args.size < 2) return;
     
-    o = scripts\mp\_brownies_core::findPlayerByName(args[0]);
-    t = scripts\mp\_brownies_core::findPlayerByName(args[1]);
+    o = scripts\mp\_brownies_core::findPlayerByClientNum(int(args[0]));
+    t = scripts\mp\_brownies_core::findPlayerByClientNum(int(args[1]));
 
     if (!isDefined(t) || !IsAlive(t)) { 
         o IPrintLnBold("Player not found or not alive");
@@ -251,8 +254,8 @@ impl_loadout(args) {
 impl_setgravity(args) {
     if (args.size < 2) return;
     
-    o = scripts\mp\_brownies_core::findPlayerByName(args[0]);
-    t = scripts\mp\_brownies_core::findPlayerByName(args[1]);
+    o = scripts\mp\_brownies_core::findPlayerByClientNum(int(args[0]));
+    t = scripts\mp\_brownies_core::findPlayerByClientNum(int(args[1]));
 
     if (!isDefined(t) || !IsAlive(t)) { 
         o IPrintLnBold("Player not found or not alive");
@@ -268,8 +271,8 @@ impl_setgravity(args) {
 impl_dropgun(args) {
     if (args.size < 2) return;
     
-    o = scripts\mp\_brownies_core::findPlayerByName(args[0]);
-    t = scripts\mp\_brownies_core::findPlayerByName(args[1]);
+    o = scripts\mp\_brownies_core::findPlayerByClientNum(int(args[0]));
+    t = scripts\mp\_brownies_core::findPlayerByClientNum(int(args[1]));
 
     w = t GetCurrentWeapon();
     t DropItem(w);
@@ -277,17 +280,9 @@ impl_dropgun(args) {
     o IPrintLnBold("Dropped ^5" + t.name + " ^7weapon");
 }
 
-impl_setfriendlyfire(args) {
-    if (args.size < 2) return;
-    
-    o = scripts\mp\_brownies_core::findPlayerByName(args[0]);
-
-    SetDvar("scr_team_fftype", args[1]);
-    o IPrintLnBold("Set friendly fire to ^5" + args[1]);
-}
 
 impl_toggleleft(args) {
-    o = scripts\mp\_brownies_core::findPlayerByName(args[0]);
+    o = scripts\mp\_brownies_core::findPlayerByClientNum(int(args[0]));
     if (!isDefined(o) || !IsAlive(o)) {
         return;
     }
@@ -296,59 +291,128 @@ impl_toggleleft(args) {
         o.pers["lefttoggle"] = false;
     }
 
-    if(GetDvarInt("cg_gun_y") == 0) {
+    if(o.pers["lefttoggle"] == 1) {
         o SetClientDvar("cg_gun_y", "7");
+        o.pers["lefttoggle"] = 0;
     } else {
         o SetClientDvar("cg_gun_y", "0");
+        o.pers["lefttoggle"] = 1;
     }
 }
 
-impl_changeteam(args) {
-    if (args.size < 3) return;
+// impl_changeteam(args) {
+//     if (args.size < 3) return;
 
-    o = scripts\mp\_brownies_core::findPlayerByName(args[0]);
-    t = scripts\mp\_brownies_core::findPlayerByName(args[1]);
+//     o = scripts\mp\_brownies_core::findPlayerByClientNum(int(args[0]));
+//     t = scripts\mp\_brownies_core::findPlayerByClientNum(args[1]);
 
-    if (!isDefined(o) || !isDefined(t)) {
-        return;
-    }
+//     if (!isDefined(o) || !isDefined(t)) {
+//         return;
+//     }
 
-    team = ToLower(args[2]);
-    if (team != "allies" && team != "axis" && team != "spectator") {
-        o IPrintLnBold("Invalid team: allies / axis / spectator");
-        return;
-    }
+//     team = ToLower(args[2]);
+//     if (team != "allies" && team != "axis" && team != "spectator") {
+//         o IPrintLnBold("Invalid team: allies / axis / spectator");
+//         return;
+//     }
 
-    if (t.pers["team"] == team) {
-        o IPrintLnBold("^5" + t.name + " ^7is already on team ^5" + team);
-        return;
-    }
+//     if (t.pers["team"] == team) {
+//         o IPrintLnBold("^5" + t.name + " ^7is already on team ^5" + team);
+//         return;
+//     }
 
-    if (team == "allies") {
-        t [[level.allies]]();
-    } else if (team == "axis") {
-        t [[level.axis]]();
-    } else if (team == "spectator") {
-        t [[level.spectator]]();
-    }
+//     if (team == "allies") {
+//         t [[level.allies]]();
+//     } else if (team == "axis") {
+//         t [[level.axis]]();
+//     } else if (team == "spectator") {
+//         t [[level.spectator]]();
+//     }
 
-    o IPrintLnBold("Changed ^5" + t.name + " ^7to team ^5" + team);
-}
+//     o IPrintLnBold("Changed ^5" + t.name + " ^7to team ^5" + team);
+// }
 
 impl_togglethirdperson(args) {
     if (args.size < 2) return;
 
-    o = scripts\mp\_brownies_core::findPlayerByName(args[0]);
-    t = scripts\mp\_brownies_core::findPlayerByName(args[1]);
+    o = scripts\mp\_brownies_core::findPlayerByClientNum(int(args[0]));
+    t = scripts\mp\_brownies_core::findPlayerByClientNum(int(args[1]));
     if (!isDefined(o) || !IsAlive(o)) {
         return;
     }
 
-    if(t GetDvarInt("cg_thirdPerson") == 1) {
-        t SetClientThirdPerson(0);
+    if(GetDvarInt("cg_thirdPerson") == 1) {
+        t SetClientDvar( "sv_cheats", 1 );
+        t SetClientDvar( "cg_thirdperson", 0 );
+        t SetClientDvar( "sv_cheats", 0 );
         o IPrintLnBold("Switched to ^5firstperson");
     } else {
-        t SetClientThirdPerson(1);
+        t SetClientDvar( "sv_cheats", 1 );
+        t SetClientDvar( "cg_thirdperson", 1 );
+        t SetClientDvar( "sv_cheats", 0 );
         o IPrintLnBold("Switched to ^5thirdperson");
     }
 }
+
+impl_bunnyhop(args) {
+    if (args.size < 2) return;
+
+    o = scripts\mp\_brownies_core::findPlayerByClientNum(int(args[0]));
+    t = scripts\mp\_brownies_core::findPlayerByClientNum(int(args[1]));
+    
+    if (!isDefined(t.pers["bunnyhop"])) {
+        t.pers["bunnyhop"] = false;
+    }
+
+    if (!t.pers["bunnyhop"]) {
+        t SetClientDvar("sv_cheats", 1 );
+        t SetClientDvar("jump_slowdownEnable", 0 );
+        t SetClientDvar("sv_cheats", 0 );
+        t.pers["bunnyhop"] = true;
+        o IPrintLnBold("Bunnyhop ^5enabled");
+    } else {
+        t SetClientDvar("sv_cheats", 1 );
+        t SetClientDvar("jump_slowdownEnable", 1 );
+        t SetClientDvar("sv_cheats", 0 );
+        t.pers["bunnyhop"] = false;
+        o IPrintLnBold("Bunnyhop ^5disabled");
+    }
+}
+
+impl_jumpheight(args) {
+    if (args.size < 3) return;
+
+    o = scripts\mp\_brownies_core::findPlayerByClientNum(int(args[0]));
+    t = scripts\mp\_brownies_core::findPlayerByClientNum(int(args[1]));
+    
+    if (!isDefined(t) || !IsAlive(t)) { 
+        o IPrintLnBold("Player not found or not alive");
+        return;
+    }
+
+    height = float(args[2]);
+    t SetClientDvar("jump_height", height);
+
+    o IPrintLnBold("Set ^5" + t.name + " ^7jump height to " + height);
+}
+
+impl_svcheats(args) {
+    if (args.size < 1) return;
+
+    o = scripts\mp\_brownies_core::findPlayerByClientNum(int(args[0]));
+    if (!isDefined(o) || !IsAlive(o)) {
+        return;
+    } 
+
+    if (!isDefined(o.pers["svcheats"])) {
+        o.pers["svcheats"] = false;
+    }
+
+    if (!o.pers["svcheats"]) {
+        o SetClientDvar("sv_cheats", 1);
+        o.pers["svcheats"] = true;
+    } else {
+        o SetClientDvar("sv_cheats", 0);
+        o.pers["svcheats"] = false;
+    }
+} 

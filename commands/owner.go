@@ -10,6 +10,16 @@ import (
 )
 
 func RegisterOwnerCommands(cr *commandRegister, bank *database.Bank) {
+	cr.RegisterCommand("sv_cheats", "svc", func(clientNum int, player, xuid string, args []string) {
+		owner, err := database.IsOwner(cr.db, xuid)
+		if err != nil || !owner {
+			cr.rcon.Tell(clientNum, "You dont have permission to use this command")
+			return
+		}
+
+		cr.rcon.SetDvar("brwns_exec_in", fmt.Sprintf("svcheats %s", player))
+	})
+
 	cr.RegisterCommand("godmode", "god", func(clientNum int, player, xuid string, args []string) {
 		owner, err := database.IsOwner(cr.db, xuid)
 		if err != nil || !owner {

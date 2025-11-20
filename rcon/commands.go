@@ -250,8 +250,8 @@ func (rc *RCONClient) GetDvar(dvar string) (string, error) {
 	rx2 := regexp.MustCompile(fmt.Sprintf(`(?i)^%s\s*[:=]\s*"?(?P<val>.*?)"?$`, name))
 
 	const maxAttempts = 3
-	var lastClean string
-	for attempt := 0; attempt < maxAttempts; attempt++ {
+	var last string
+	for i := range maxAttempts {
 		res, err := rc.SendCommand(dvar, nil, requireResponse())
 		if err != nil {
 			return "", err
@@ -277,8 +277,8 @@ func (rc *RCONClient) GetDvar(dvar string) (string, error) {
 				}
 			}
 			if !strings.Contains(strings.ToLower(clean), "sv_iw4madmin_in") {
-				if lastClean == "" {
-					lastClean = clean
+				if last == "" {
+					last = clean
 				}
 			}
 		}
@@ -292,11 +292,11 @@ func (rc *RCONClient) GetDvar(dvar string) (string, error) {
 		if !needRetry {
 			break
 		}
-		time.Sleep(time.Duration(attempt+1) * 150 * time.Millisecond)
+		time.Sleep(time.Duration(i+1) * 150 * time.Millisecond)
 	}
 
-	if lastClean != "" {
-		return lastClean, nil
+	if last != "" {
+		return last, nil
 	}
 	return "", fmt.Errorf("empty dvar response for %q", dvar)
 }
