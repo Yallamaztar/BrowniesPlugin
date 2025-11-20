@@ -37,7 +37,7 @@ The application will generate a `config.json` on first run, or you can create on
 Before building, open `main.go` and add yourself as an owner to ensure you have full access. Find the `// Add Owners` section:
 
 ```go
-database.AddOwner(db, "Player", "XUID") // specifically the integer version XUID
+database.AddOwner(db, "Player", "XUID")
 ```
 
 ### 4. Running
