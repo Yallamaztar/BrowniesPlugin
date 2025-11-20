@@ -17,8 +17,6 @@ import (
 	"github.com/Yallamaztar/BrowniesPlugin/config"
 	"github.com/Yallamaztar/BrowniesPlugin/database"
 	"github.com/Yallamaztar/BrowniesPlugin/helpers"
-	"github.com/Yallamaztar/BrowniesPlugin/plugins"
-	"github.com/Yallamaztar/BrowniesPlugin/plugins/examples"
 	"github.com/Yallamaztar/BrowniesPlugin/rcon"
 )
 
@@ -147,16 +145,6 @@ func main() {
 			// Command registration
 			reg := commands.New(slogger, rc, db)
 			reg.RegisterCommands(db, bdb, rc)
-
-			// Plugin manager setup per server instance
-			pm := plugins.NewManager(ctx, func(format string, v ...any) { slogger.Printf(format, v...) })
-			pm.Add(&examples.MotdPlugin{})
-			pm.Add(&examples.WatchPlugin{})
-
-			pctx := &plugins.Context{Ctx: ctx, DB: db, Commands: reg, Logger: slogger, RCON: rc}
-			if err := pm.Load(pctx); err != nil {
-				slogger.Printf("Plugin load error: %v", err)
-			}
 
 			// Handle events
 			wg.Add(1)
