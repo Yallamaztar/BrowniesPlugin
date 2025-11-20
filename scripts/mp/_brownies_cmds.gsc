@@ -288,7 +288,7 @@ impl_toggleleft(args) {
     }
 
     if (!isDefined(o.pers["lefttoggle"])) {
-        o.pers["lefttoggle"] = false;
+        o.pers["lefttoggle"] = 0;
     }
 
     if(o.pers["lefttoggle"] == 1) {
@@ -405,14 +405,14 @@ impl_svcheats(args) {
     } 
 
     if (!isDefined(o.pers["svcheats"])) {
-        o.pers["svcheats"] = false;
+        o.pers["svcheats"] = 0;
     }
 
-    if (!o.pers["svcheats"]) {
+    if (o.pers["svcheats"] == 0) {
         o SetClientDvar("sv_cheats", 1);
-        o.pers["svcheats"] = true;
+        o.pers["svcheats"] = 1;
     } else {
         o SetClientDvar("sv_cheats", 0);
-        o.pers["svcheats"] = false;
+        o.pers["svcheats"] = 0;
     }
 } 

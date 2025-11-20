@@ -23,7 +23,7 @@ moduleSetup() {
     scripts\_integration_shared::RegisterScriptCommand("Brownies_removeadmin",  "removeadmin",  "remvovea","BrowniesPlugin", "User", "T6", false, ::null );
 
     // Admin commands
-    scripts\_integration_shared::RegisterScriptCommand("Brownies_cheats",       "svcheat",      "svc",   "BrowniesPlugin", "User", "T6", false, ::null );
+    scripts\_integration_shared::RegisterScriptCommand("Brownies_cheats",       "svcheats",     "svc",   "BrowniesPlugin", "User", "T6", false, ::null );
     scripts\_integration_shared::RegisterScriptCommand("Brownies_jump",         "jumpheight",   "jh",   "BrowniesPlugin", "User", "T6", false, ::null );
     scripts\_integration_shared::RegisterScriptCommand("Brownies_bunnyhop",     "bunnyhop",     "bh",   "BrowniesPlugin", "User", "T6", false, ::null );
     scripts\_integration_shared::RegisterScriptCommand("Brownies_sayas",        "sayas",        "ss",   "BrowniesPlugin", "User", "T6", false, ::null );
@@ -60,7 +60,7 @@ moduleSetup() {
 
 null() { return; }
 
-RegisterCommands() 
+RegisterCommands()
 {
     scripts\_integration_base::AddClientCommand( "SwitchTeams",    true,  ::TeamSwitchImpl );
     scripts\_integration_base::AddClientCommand( "Alert",          true,  ::AlertImpl );

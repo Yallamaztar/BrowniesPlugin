@@ -99,7 +99,7 @@ func RegisterClientCommands(cr *commandRegister, bank *database.Bank) {
 	})
 
 	cr.RegisterCommand("left", "lt", func(clientNum int, player, xuid string, args []string) {
-		cr.rcon.SetDvar("brwns_exec_in", fmt.Sprintf("toggleleft %s", player))
+		cr.rcon.SetDvar("brwns_exec_in", fmt.Sprintf("toggleleft %d", clientNum))
 	})
 
 	cr.RegisterCommand("discord", "dc", func(clientNum int, player, xuid string, args []string) {

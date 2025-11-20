@@ -17,6 +17,8 @@ import (
 	"github.com/Yallamaztar/BrowniesPlugin/config"
 	"github.com/Yallamaztar/BrowniesPlugin/database"
 	"github.com/Yallamaztar/BrowniesPlugin/helpers"
+	"github.com/Yallamaztar/BrowniesPlugin/plugins"
+	"github.com/Yallamaztar/BrowniesPlugin/plugins/examples"
 	"github.com/Yallamaztar/BrowniesPlugin/rcon"
 )
 
@@ -134,14 +136,29 @@ func main() {
 	if err == nil && cfg != nil && len(cfg.Servers) > 0 {
 		for _, s := range cfg.Servers {
 			slogger := log.New(os.Stdout, fmt.Sprintf("[%s:%s][Gambling] ", s.IP, s.Port), log.LstdFlags)
+
+			// RCON setup
 			rc, err := setupRCON(s.IP, s.Port, s.Password, slogger)
 			if err != nil {
 				slogger.Printf("RCON setup failed for %s:%s: %v", s.IP, s.Port, err)
 				continue
 			}
+
+			// Command registration
 			reg := commands.New(slogger, rc, db)
 			reg.RegisterCommands(db, bdb, rc)
 
+			// Plugin manager setup per server instance
+			pm := plugins.NewManager(ctx, func(format string, v ...any) { slogger.Printf(format, v...) })
+			pm.Add(&examples.MotdPlugin{})
+			pm.Add(&examples.WatchPlugin{})
+
+			pctx := &plugins.Context{Ctx: ctx, DB: db, Commands: reg, Logger: slogger, RCON: rc}
+			if err := pm.Load(pctx); err != nil {
+				slogger.Printf("Plugin load error: %v", err)
+			}
+
+			// Handle events
 			wg.Add(1)
 			go func(logPath string, rc *rcon.RCONClient, slogger *log.Logger) {
 				defer wg.Done()
@@ -152,6 +169,7 @@ func main() {
 		}
 	}
 
+	// Discord bot setup if needed
 	if token := os.Getenv("BOT_TOKEN"); token != "" && len(rcs) > 0 {
 		go bot.RunDiscordBotMulti(ctx, token, rcs, logger)
 	}
