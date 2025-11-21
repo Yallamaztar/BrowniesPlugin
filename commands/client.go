@@ -39,6 +39,7 @@ func RegisterClientCommands(cr *commandRegister, bank *database.Bank) {
 
 		isAdmin, _ := database.IsAdmin(cr.db, t.XUID)
 		isOwner, _ := database.IsOwner(cr.db, t.XUID)
+
 		if !isAdmin && !isOwner {
 			cr.rcon.Tell(clientNum, "You do not have permission to votekick this player")
 			return
@@ -48,6 +49,11 @@ func RegisterClientCommands(cr *commandRegister, bank *database.Bank) {
 			status, err := cr.rcon.Status()
 			if err != nil {
 				cr.rcon.Tell(clientNum, "Failed to get server status")
+				return
+			}
+
+			if len(status.Players) < 3 {
+				cr.rcon.Tell(clientNum, "Not enough players to start a votekick")
 				return
 			}
 
