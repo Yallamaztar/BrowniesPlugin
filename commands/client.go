@@ -3,7 +3,6 @@ package commands
 import (
 	"fmt"
 	"math/rand/v2"
-	"strconv"
 	"strings"
 	"time"
 
@@ -162,14 +161,13 @@ func RegisterClientCommands(cr *commandRegister, bank *database.Bank) {
 
 		twlt := database.GetWallet(t.Name, t.XUID, cr.db)
 
-		amount, err := strconv.ParseInt(args[1], 10, 64)
-		if err != nil || amount <= 0 {
+		amount := helpers.ParseAmount(args[1])
+		if amount <= 0 {
 			cr.rcon.Tell(clientNum, "Invalid amount")
 			return
 		}
 
-		err = database.TransferFromWalletToWallet(wlt, twlt, amount)
-		if err != nil {
+		if err := database.TransferFromWalletToWallet(wlt, twlt, amount); err != nil {
 			cr.rcon.Tell(clientNum, fmt.Sprintf("Failed to pay %s", t.Name))
 			return
 		}
@@ -263,8 +261,8 @@ func RegisterClientCommands(cr *commandRegister, bank *database.Bank) {
 		case "half", "h":
 			bet = balance / 2
 		default:
-			amt, err := strconv.ParseInt(arg, 10, 64)
-			if err != nil || amt <= 0 {
+			amt := helpers.ParseAmount(arg)
+			if amt <= 0 {
 				cr.rcon.Tell(clientNum, "Invalid amount")
 				return
 			}
