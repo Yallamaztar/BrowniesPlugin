@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Yallamaztar/BrowniesPlugin/database"
+	"github.com/Yallamaztar/BrowniesPlugin/discord"
 	"github.com/Yallamaztar/BrowniesPlugin/helpers"
 )
 
@@ -278,12 +279,12 @@ func RegisterClientCommands(cr *commandRegister, bank *database.Bank) {
 			bank.TransferToWallet(wlt, bet)
 			cr.rcon.Tell(clientNum, fmt.Sprintf("You ^5won! ^7$%s", helpers.FormatMoney(bet)))
 			cr.rcon.Say(fmt.Sprintf("%s just ^5won ^7$%s in gambling!", player, helpers.FormatMoney(bet)))
-			helpers.WinWebhook(player, bet)
+			discord.WinWebhook(player, bet)
 		} else {
 			bank.TransferFromWallet(wlt, bet)
 			cr.rcon.Tell(clientNum, fmt.Sprintf("You ^1lost! ^7$%s", helpers.FormatMoney(bet)))
 			cr.rcon.Say(fmt.Sprintf("%s just ^1lost ^7$%s in gambling!", player, helpers.FormatMoney(bet)))
-			helpers.LossWebhook(player, bet)
+			discord.LossWebhook(player, bet)
 		}
 	})
 }

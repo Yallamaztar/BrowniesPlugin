@@ -1,4 +1,4 @@
-package commands
+package bus
 
 import (
 	"context"
@@ -12,7 +12,12 @@ import (
 	"github.com/Yallamaztar/events/events"
 )
 
-func HandleEvents(logPath string, ctx context.Context, rc *rcon.RCONClient, logger *log.Logger, db *sql.DB, bdb *database.Bank, cr *commandRegister) {
+type commandExecutor interface {
+	SetClientNum(xuid string, clientNum int)
+	Exec(command string, clientNum int, player, xuid string, args []string) bool
+}
+
+func HandleEvents(logPath string, ctx context.Context, rc *rcon.RCONClient, logger *log.Logger, db *sql.DB, bdb *database.Bank, cr commandExecutor) {
 	ch := make(chan events.Event, 128)
 	go func() {
 		if err := events.TailFileContext(ctx, logPath, true, ch); err != nil {

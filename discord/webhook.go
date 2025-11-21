@@ -1,4 +1,4 @@
-package helpers
+package discord
 
 import (
 	"bytes"
@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/Yallamaztar/BrowniesPlugin/helpers"
 )
 
 type embed struct {
@@ -52,7 +54,7 @@ func WinWebhook(player string, amount int64) {
 	SendWebhook(webhookPayload{
 		Embeds: []embed{{
 			Title:       "Gamble Win 🎉",
-			Description: "**" + player + "** won **$" + FormatMoney(amount) + "**",
+			Description: "**" + player + "** won **$" + helpers.FormatMoney(amount) + "**",
 			Color:       0x00ff00,
 			Timestamp:   time.Now().UTC().Format(time.RFC3339),
 		}},
@@ -63,7 +65,7 @@ func LossWebhook(player string, amount int64) {
 	SendWebhook(webhookPayload{
 		Embeds: []embed{{
 			Title:       "Gamble Loss 😿",
-			Description: "**" + player + "** lost **$" + FormatMoney(amount) + "**",
+			Description: "**" + player + "** lost **$" + helpers.FormatMoney(amount) + "**",
 			Color:       0xff0000,
 			Timestamp:   time.Now().UTC().Format(time.RFC3339),
 		}},
@@ -94,7 +96,7 @@ func GamblingMaxBetWebhook(amount int64) {
 	color := 0xff0000
 
 	if amount > 0 {
-		desc = "Max bet set to **$" + FormatMoney(amount) + " 😿**"
+		desc = "Max bet set to **$" + helpers.FormatMoney(amount) + " 😿**"
 		color = 0x00ff00
 	}
 

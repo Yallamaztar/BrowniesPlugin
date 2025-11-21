@@ -12,11 +12,11 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/Yallamaztar/BrowniesPlugin/bot"
+	"github.com/Yallamaztar/BrowniesPlugin/bus"
 	"github.com/Yallamaztar/BrowniesPlugin/commands"
 	"github.com/Yallamaztar/BrowniesPlugin/config"
 	"github.com/Yallamaztar/BrowniesPlugin/database"
-	"github.com/Yallamaztar/BrowniesPlugin/helpers"
+	"github.com/Yallamaztar/BrowniesPlugin/discord"
 	"github.com/Yallamaztar/BrowniesPlugin/rcon"
 )
 
@@ -150,7 +150,7 @@ func main() {
 			wg.Add(1)
 			go func(logPath string, rc *rcon.RCONClient, slogger *log.Logger) {
 				defer wg.Done()
-				commands.HandleEvents(logPath, ctx, rc, slogger, db, bdb, reg)
+				bus.HandleEvents(logPath, ctx, rc, slogger, db, bdb, reg)
 			}(s.LogPath, rc, slogger)
 
 			rcs = append(rcs, rc)
@@ -159,10 +159,10 @@ func main() {
 
 	// Discord bot setup if needed
 	if token := os.Getenv("BOT_TOKEN"); token != "" && len(rcs) > 0 {
-		go bot.RunDiscordBotMulti(ctx, token, rcs, logger)
+		go discord.RunDiscordBot(ctx, token, rcs, logger)
 	}
 
-	helpers.OnReadyWebhook()
+	discord.OnReadyWebhook()
 
 	<-ctx.Done()
 	logger.Println("Shutting down...")
@@ -174,6 +174,6 @@ func main() {
 	}
 
 	wg.Wait()
-	helpers.OnShutdownWebhook()
+	discord.OnShutdownWebhook()
 	_ = db.Close()
 }

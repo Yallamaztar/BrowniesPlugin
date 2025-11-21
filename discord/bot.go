@@ -1,4 +1,4 @@
-package bot
+package discord
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func RunDiscordBotMulti(ctx context.Context, token string, rcs []*rcon.RCONClient, logger *log.Logger) error {
+func RunDiscordBot(ctx context.Context, token string, rcs []*rcon.RCONClient, logger *log.Logger) error {
 	dg, err := discordgo.New("Bot " + token)
 	if err != nil {
 		return fmt.Errorf("discord session error: %w", err)

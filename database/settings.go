@@ -3,7 +3,7 @@ package database
 import (
 	"database/sql"
 
-	"github.com/Yallamaztar/BrowniesPlugin/helpers"
+	"github.com/Yallamaztar/BrowniesPlugin/discord"
 )
 
 func EnsureSettings(db *sql.DB) error {
@@ -24,7 +24,7 @@ func SetMaxBet(db *sql.DB, amount int64) error {
 		"max_bet", amount,
 	)
 
-	helpers.GamblingMaxBetWebhook(amount)
+	discord.GamblingMaxBetWebhook(amount)
 	return err
 }
 
@@ -54,7 +54,7 @@ func EnableGambling(db *sql.DB, enable bool) error {
 		"gambling_enabled", val,
 	)
 
-	helpers.GamblingEnabledWebhook(enable)
+	discord.GamblingEnabledWebhook(enable)
 	return err
 }
 func IsGamblingEnabled(db *sql.DB) bool {
