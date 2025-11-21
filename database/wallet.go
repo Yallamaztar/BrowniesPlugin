@@ -120,7 +120,6 @@ func (w *Wallet) SubtractBalanceTx(tx *sql.Tx, amount int64) error {
 		return nil
 	}
 
-	// Allow negative balances: drop balance >= ? constraint
 	res, err := tx.Exec("UPDATE wallets SET balance = balance - ? WHERE xuid = ?", amount, w.xuid)
 	if err != nil {
 		return err
@@ -233,13 +232,13 @@ func GiveAllWallets(db *sql.DB, amount int64) (int, error) {
 	return int(rows), nil
 }
 
-type RichWallet struct {
+type wallets struct {
 	Player  string
 	XUID    string
 	Balance int64
 }
 
-func TopRichestWallets(db *sql.DB, limit int) ([]RichWallet, error) {
+func TopRichestWallets(db *sql.DB, limit int) ([]wallets, error) {
 	if db == nil {
 		return nil, fmt.Errorf("db is nil")
 	}
@@ -253,9 +252,9 @@ func TopRichestWallets(db *sql.DB, limit int) ([]RichWallet, error) {
 	}
 	defer rows.Close()
 
-	list := make([]RichWallet, 0, limit)
+	list := make([]wallets, 0, limit)
 	for rows.Next() {
-		var rw RichWallet
+		var rw wallets
 		if err := rows.Scan(&rw.Player, &rw.XUID, &rw.Balance); err != nil {
 			return nil, err
 		}
@@ -264,11 +263,11 @@ func TopRichestWallets(db *sql.DB, limit int) ([]RichWallet, error) {
 	return list, nil
 }
 
-func Top5RichestWallets(db *sql.DB) ([]RichWallet, error) {
+func Top5RichestWallets(db *sql.DB) ([]wallets, error) {
 	return TopRichestWallets(db, 5)
 }
 
-func Bottom5PoorestWallets(db *sql.DB) ([]RichWallet, error) {
+func Bottom5PoorestWallets(db *sql.DB) ([]wallets, error) {
 	if db == nil {
 		return nil, fmt.Errorf("db is nil")
 	}
@@ -278,9 +277,9 @@ func Bottom5PoorestWallets(db *sql.DB) ([]RichWallet, error) {
 	}
 
 	defer rows.Close()
-	var list []RichWallet
+	var list []wallets
 	for rows.Next() {
-		var rw RichWallet
+		var rw wallets
 		if err := rows.Scan(&rw.Player, &rw.XUID, &rw.Balance); err != nil {
 			return nil, err
 		}

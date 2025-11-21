@@ -160,10 +160,29 @@ func RegisterClientCommands(cr *commandRegister, bank *database.Bank) {
 		}
 
 		twlt := database.GetWallet(t.Name, t.XUID, cr.db)
+		if twlt == nil {
+			cr.rcon.Tell(clientNum, "Target wallet not found")
+			return
+		}
 
-		amount := helpers.ParseAmount(args[1])
-		if amount <= 0 {
-			cr.rcon.Tell(clientNum, "Invalid amount")
+		arg := strings.ToLower(args[1])
+
+		var amount int64
+		switch arg {
+		case "all", "a":
+			amount = wlt.Balance()
+		case "half", "h":
+			amount = wlt.Balance() / 2
+		default:
+			amount = helpers.ParseAmount(arg)
+			if amount <= 0 {
+				cr.rcon.Tell(clientNum, "Invalid amount")
+				return
+			}
+		}
+
+		if amount > wlt.Balance() {
+			cr.rcon.Tell(clientNum, "Insufficient wallet balance")
 			return
 		}
 

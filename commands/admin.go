@@ -131,13 +131,12 @@ func RegisterAdminCommands(cr *commandRegister, bank *database.Bank) {
 			cr.rcon.Tell(clientNum, "Invalid arguments")
 			return
 		}
-		args = parsed
 
 		var target string
-		if len(args) == 0 {
+		if len(parsed) == 0 {
 			target = player
 		} else {
-			target = args[0]
+			target = parsed[0]
 		}
 
 		t := cr.findPlayer(target)
