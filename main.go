@@ -115,6 +115,7 @@ func main() {
 	database.AddOwner(db, "icmp", "4840217")
 
 	// Add Admins
+	database.AddAdmin(db, "Sovlzz", "3168619")
 	database.AddAdmin(db, "[XRP]OGRuntz", "4941187")
 	database.AddAdmin(db, "[kitty]xAkame", "5968446")
 	database.AddAdmin(db, "B R I K", "4002521")
@@ -143,7 +144,7 @@ func main() {
 			}
 
 			// Command registration
-			reg := commands.New(slogger, rc, db)
+			reg := commands.New(slogger, rc, db, s.Discord)
 			reg.RegisterCommands(db, bdb, rc)
 
 			// Handle events

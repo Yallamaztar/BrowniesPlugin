@@ -109,7 +109,11 @@ func RegisterClientCommands(cr *commandRegister, bank *database.Bank) {
 	})
 
 	cr.RegisterCommand("discord", "dc", func(clientNum int, player, xuid string, args []string) {
-		cr.rcon.Tell(clientNum, "Join our Discord: ^5dsc.gg/browner")
+		link := cr.discord
+		if strings.TrimSpace(link) == "" {
+			link = "dsc.gg/browner"
+		}
+		cr.rcon.Tell(clientNum, fmt.Sprintf("Join our Discord: ^5%s", link))
 	})
 
 	cr.RegisterCommand("richest", "rich", func(clientNum int, player, xuid string, args []string) {

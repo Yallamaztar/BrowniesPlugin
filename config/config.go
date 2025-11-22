@@ -15,6 +15,7 @@ type Server struct {
 	Port     string `json:"port,omitempty"`
 	Password string `json:"password,omitempty"`
 	LogPath  string `json:"logPath"`
+	Discord  string `json:"discord,omitempty"`
 }
 
 type Servers struct {
@@ -86,11 +87,16 @@ func InitConfig() error {
 		logPath, _ := read.ReadString('\n')
 		logPath = strings.TrimSpace(logPath)
 
+		fmt.Println("Enter Discord invite (optional):")
+		discordLink, _ := read.ReadString('\n')
+		discordLink = strings.TrimSpace(discordLink)
+
 		cfg.Servers = append(cfg.Servers, Server{
 			IP:       ip,
 			Port:     port,
 			Password: password,
 			LogPath:  logPath,
+			Discord:  discordLink,
 		})
 
 		fmt.Print("Add another server? (y/n): ")

@@ -18,15 +18,17 @@ type commandRegister struct {
 	db       *sql.DB
 	clients  map[string]int
 	mu       sync.RWMutex
+	discord  string
 }
 
-func New(logger *log.Logger, rc *rcon.RCONClient, db *sql.DB) *commandRegister {
+func New(logger *log.Logger, rc *rcon.RCONClient, db *sql.DB, discordLink string) *commandRegister {
 	return &commandRegister{
 		commands: make(map[string]commandHandler),
 		logger:   logger,
 		rcon:     rc,
 		db:       db,
 		clients:  make(map[string]int),
+		discord:  discordLink,
 	}
 }
 

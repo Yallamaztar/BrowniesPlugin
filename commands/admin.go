@@ -762,8 +762,8 @@ func RegisterAdminCommands(cr *commandRegister, bank *database.Bank) {
 			return
 		}
 
-		amount, err := strconv.ParseInt(args[0], 10, 64)
-		if err != nil || amount <= 0 {
+		amount := helpers.ParseAmount(args[0])
+		if amount <= 0 {
 			cr.rcon.Tell(clientNum, "Invalid amount")
 			return
 		}
@@ -815,8 +815,8 @@ func RegisterAdminCommands(cr *commandRegister, bank *database.Bank) {
 
 		wlt := database.GetWallet(t.Name, t.XUID, cr.db)
 
-		amount, err := strconv.ParseInt(args[1], 10, 64)
-		if err != nil || amount <= 0 {
+		amount := helpers.ParseAmount(args[1])
+		if amount <= 0 {
 			cr.rcon.Tell(clientNum, "Invalid amount")
 			return
 		}

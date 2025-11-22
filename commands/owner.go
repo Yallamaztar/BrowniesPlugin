@@ -2,7 +2,6 @@ package commands
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/Yallamaztar/BrowniesPlugin/database"
@@ -114,8 +113,16 @@ func RegisterOwnerCommands(cr *commandRegister, bank *database.Bank) {
 			return
 		}
 
-		amount, err := strconv.ParseInt(args[0], 10, 64)
-		if err != nil || amount < 0 {
+		amount := helpers.ParseAmount(args[0])
+		if amount == 0 {
+			// Accept literal "0" to disable, but treat other invalid input as error
+			if strings.TrimSpace(args[0]) != "0" {
+				cr.rcon.Tell(clientNum, "Invalid amount")
+				return
+			}
+		}
+
+		if amount < 0 {
 			cr.rcon.Tell(clientNum, "Invalid amount")
 			return
 		}
@@ -147,8 +154,8 @@ func RegisterOwnerCommands(cr *commandRegister, bank *database.Bank) {
 			return
 		}
 
-		amount, err := strconv.ParseInt(args[0], 10, 64)
-		if err != nil || amount <= 0 {
+		amount := helpers.ParseAmount(args[0])
+		if amount <= 0 {
 			cr.rcon.Tell(clientNum, "Invalid amount")
 			return
 		}
