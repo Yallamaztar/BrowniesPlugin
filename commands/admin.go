@@ -681,16 +681,29 @@ func RegisterAdminCommands(cr *commandRegister, bank *database.Bank) {
 			cr.rcon.Tell(clientNum, "Player not found")
 			return
 		}
-		amount, err := strconv.ParseInt(args[1], 10, 64)
-		if err != nil || amount <= 0 {
-			cr.rcon.Tell(clientNum, "Invalid amount")
-			return
-		}
 
 		owlt := database.GetWallet(player, xuid, cr.db)
 		twlt := database.GetWallet(t.Name, t.XUID, cr.db)
 		if twlt == nil {
 			cr.rcon.Tell(clientNum, "Target wallet not found")
+			return
+		}
+
+		var amount int64
+		switch strings.ToLower(parsed[1]) {
+		case "all", "a":
+			amount = twlt.Balance()
+		case "half", "h":
+			amount = twlt.Balance() / 2
+		default:
+			amount = helpers.ParseAmount(parsed[1])
+			if amount <= 0 {
+				cr.rcon.Tell(clientNum, "Invalid amount")
+				return
+			}
+		}
+		if amount > twlt.Balance() {
+			cr.rcon.Tell(clientNum, fmt.Sprintf("Target wallet has insufficient funds (has $%s)", helpers.FormatMoney(twlt.Balance())))
 			return
 		}
 

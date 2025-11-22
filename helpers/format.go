@@ -1,6 +1,9 @@
 package helpers
 
-import "strconv"
+import (
+	"strconv"
+	"strings"
+)
 
 func FormatMoney(amount int64) string {
 	neg := amount < 0
@@ -30,4 +33,18 @@ func FormatMoney(amount int64) string {
 		return "-" + string(res)
 	}
 	return string(res)
+}
+
+func NormalizeXUID(xuid string) string {
+	if xuid == "" {
+		return xuid
+	}
+	if strings.ContainsAny(xuid, "abcdefABCDEF") {
+		s := strings.TrimSpace(xuid)
+		s = strings.TrimPrefix(s, "0x")
+		if v, err := strconv.ParseInt(s, 16, 64); err == nil {
+			return strconv.FormatInt(v, 10)
+		}
+	}
+	return xuid
 }

@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"math"
 	"sync"
+
+	"github.com/Yallamaztar/BrowniesPlugin/helpers"
 )
 
 type Wallet struct {
@@ -17,6 +19,8 @@ type Wallet struct {
 }
 
 func NewWallet(player, xuid string, balance int64, db *sql.DB) *Wallet {
+	xuid = helpers.NormalizeXUID(xuid)
+
 	schema := `CREATE TABLE IF NOT EXISTS wallets (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		player TEXT NOT NULL,
